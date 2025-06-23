@@ -342,8 +342,7 @@ class OnlineGameManager {    constructor() {
         
         document.getElementById('online-vote-bar1').style.width = `${option1Percent}%`;
         document.getElementById('online-vote-bar2').style.width = `${option2Percent}%`;
-        
-        // Update voter names display
+          // Update voter names display
         if (votersByOption) {
             console.log('Updating voter names:', votersByOption);
             this.updateVoterNames('online-voters1', votersByOption.option1 || []);
@@ -353,6 +352,37 @@ class OnlineGameManager {    constructor() {
             this.updateVoterNames('online-voters1', []);
             this.updateVoterNames('online-voters2', []);
         }
+    }
+
+    updateVoterNames(containerId, voterNames) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`Voter container ${containerId} not found!`);
+            return;
+        }
+        
+        // Clear existing voter tags
+        container.innerHTML = '';
+        
+        // Add voter tags for each voter (only if we have voters)
+        if (voterNames && voterNames.length > 0) {
+            console.log(`Adding ${voterNames.length} voters to ${containerId}: ${voterNames.join(', ')}`);
+            voterNames.forEach(voterName => {
+                const voterTag = document.createElement('span');
+                voterTag.className = 'voter-tag';
+                voterTag.textContent = voterName;
+                
+                // Highlight current player's vote
+                if (voterName === this.playerName) {
+                    voterTag.classList.add('current-player');
+                }
+                
+                container.appendChild(voterTag);
+            });
+        } else {
+            console.log(`No voters to display for ${containerId}`);
+        }
+        // If no voters, container remains empty (CSS will show "No votes yet")
     }
 
     updateGameInfo() {
@@ -631,33 +661,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-function    updateVoterNames(containerId, voterNames) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`Voter container ${containerId} not found!`);
-            return;
-        }
-        
-        // Clear existing voter tags
-        container.innerHTML = '';
-        
-        // Add voter tags for each voter (only if we have voters)
-        if (voterNames && voterNames.length > 0) {
-            console.log(`Adding ${voterNames.length} voters to ${containerId}: ${voterNames.join(', ')}`);
-            voterNames.forEach(voterName => {
-                const voterTag = document.createElement('span');
-                voterTag.className = 'voter-tag';
-                voterTag.textContent = voterName;
-                
-                // Highlight current player's vote
-                if (voterName === this.playerName) {
-                    voterTag.classList.add('current-player');
-                }
-                
-                container.appendChild(voterTag);
-            });
-        } else {
-            console.log(`No voters to display for ${containerId}`);
-        }
-        // If no voters, container remains empty (CSS will show "No votes yet")
-    }
+
