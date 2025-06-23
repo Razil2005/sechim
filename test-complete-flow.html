@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Join Flow Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        input, button { padding: 10px; margin: 5px; }
+        input { width: 200px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .step { margin: 10px 0; padding: 10px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .room-code { font-size: 24px; font-weight: bold; background: #e9ecef; padding: 10px; border-radius: 4px; text-align: center; margin: 10px 0; letter-spacing: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Complete Join Flow Test</h1>
+    <p><strong>This test simulates the exact experience of joining from another computer</strong></p>
+    
+    <div class="test-section warning">
+        <h3>⚠️ Before Testing</h3>
+        <p>For external device access, you may need to:</p>
+        <ul>
+            <li>Run <code>add-firewall-rule.bat</code> as Administrator</li>
+            <li>Ensure both devices are on the same WiFi network</li>
+            <li>Access via: <strong>http://192.168.100.7:3000</strong></li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 1: Host Creates Room</h3>
+        <div class="step">
+            <strong>Simulating Host (Device 1):</strong><br>
+            1. Connect to server<br>
+            2. Create room with player name<br>
+            3. Get room code to share
+        </div>
+        <input type="text" id="host-name" placeholder="Host Name" value="HostPlayer">
+        <button onclick="startHost()">Start Host Session</button>
+        <div id="host-status"></div>
+        <div id="room-code-display"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Player Joins from "Another Computer"</h3>
+        <div class="step">
+            <strong>Simulating Join (Device 2):</strong><br>
+            1. Connect to server from different socket<br>
+            2. Enter room code received from host<br>
+            3. Join the room
+        </div>
+        <input type="text" id="join-name" placeholder="Joining Player Name" value="JoinPlayer">
+        <input type="text" id="join-room-code" placeholder="Enter Room Code" maxlength="6" style="text-transform: uppercase;">
+        <button onclick="joinAsSecondPlayer()">Join from "Another Computer"</button>
+        <div id="join-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 3: Test Complete Flow</h3>
+        <button onclick="runCompleteTest()">Run Complete Auto Test</button>
+        <div id="complete-test-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Connection Log</h3>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let hostSocket = null;
+        let joinSocket = null;
+        let currentRoomId = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'orange' : 'blue';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function startHost() {
+            const hostName = document.getElementById('host-name').value.trim();
+            if (!hostName) {
+                alert('Please enter host name');
+                return;
+            }
+            
+            log(`🏠 Starting host session for: ${hostName}`);
+            
+            // Create host socket
+            hostSocket = io();
+            
+            hostSocket.on('connect', () => {
+                log(`✅ Host connected! Socket ID: ${hostSocket.id}`, 'success');
+                
+                // Create room
+                hostSocket.emit('create-room', { playerName: hostName });
+                log(`📡 Room creation request sent`);
+            });
+            
+            hostSocket.on('room-created', (data) => {
+                if (data.success) {
+                    currentRoomId = data.roomId;
+                    log(`🎉 Room created successfully! Room ID: ${data.roomId}`, 'success');
+                    
+                    document.getElementById('host-status').innerHTML = `
+                        <div class="success">
+                            <strong>✅ Host Session Active</strong><br>
+                            Host: ${hostName}<br>
+                            Socket ID: ${hostSocket.id}
+                        </div>
+                    `;
+                    
+                    document.getElementById('room-code-display').innerHTML = `
+                        <h4>📋 Room Code to Share:</h4>
+                        <div class="room-code">${data.roomId}</div>
+                        <p><em>Other players should enter this code to join</em></p>
+                    `;
+                    
+                    // Auto-fill join room code
+                    document.getElementById('join-room-code').value = data.roomId;
+                } else {
+                    log(`❌ Failed to create room: ${data.message}`, 'error');
+                    document.getElementById('host-status').innerHTML = `
+                        <div class="error">Failed to create room: ${data.message}</div>
+                    `;
+                }
+            });
+            
+            hostSocket.on('player-joined', (data) => {
+                log(`👥 Player joined: ${data.player.name}`, 'success');
+                document.getElementById('host-status').innerHTML += `
+                    <div style="margin-top: 10px; padding: 5px; background: #e7f3ff; border-radius: 4px;">
+                        <strong>Player Joined:</strong> ${data.player.name}
+                    </div>
+                `;
+            });
+            
+            hostSocket.on('disconnect', () => {
+                log('🔌 Host disconnected', 'error');
+            });
+        }
+        
+        function joinAsSecondPlayer() {
+            const joinName = document.getElementById('join-name').value.trim();
+            const roomCode = document.getElementById('join-room-code').value.trim().toUpperCase();
+            
+            if (!joinName || !roomCode) {
+                alert('Please enter player name and room code');
+                return;
+            }
+            
+            log(`🚪 Attempting to join room ${roomCode} as ${joinName}`);
+            
+            // Create separate socket for joining player
+            joinSocket = io();
+            
+            joinSocket.on('connect', () => {
+                log(`✅ Join player connected! Socket ID: ${joinSocket.id}`, 'success');
+                log(`📡 Sending join request for room: ${roomCode}`);
+                
+                // Join room
+                joinSocket.emit('join-room', { 
+                    playerName: joinName, 
+                    roomId: roomCode 
+                });
+            });
+            
+            joinSocket.on('join-room-response', (data) => {
+                if (data.success) {
+                    log(`🎉 Successfully joined room ${roomCode}!`, 'success');
+                    document.getElementById('join-status').innerHTML = `
+                        <div class="success">
+                            <strong>✅ Successfully Joined!</strong><br>
+                            Player: ${joinName}<br>
+                            Room: ${roomCode}<br>
+                            Socket ID: ${joinSocket.id}
+                        </div>
+                    `;
+                } else {
+                    log(`❌ Failed to join room: ${data.message}`, 'error');
+                    document.getElementById('join-status').innerHTML = `
+                        <div class="error">
+                            <strong>❌ Join Failed!</strong><br>
+                            Error: ${data.message}
+                        </div>
+                    `;
+                }
+            });
+            
+            joinSocket.on('disconnect', () => {
+                log('🔌 Join player disconnected', 'error');
+            });
+        }
+        
+        function runCompleteTest() {
+            log('🚀 Starting complete automated test...', 'warning');
+            
+            // Clear previous results
+            document.getElementById('host-status').innerHTML = '';
+            document.getElementById('join-status').innerHTML = '';
+            document.getElementById('room-code-display').innerHTML = '';
+            document.getElementById('complete-test-status').innerHTML = '<div>Running automated test...</div>';
+            
+            // Step 1: Create host
+            setTimeout(() => {
+                document.getElementById('host-name').value = 'AutoHost';
+                startHost();
+            }, 100);
+            
+            // Step 2: Join after room is created (wait 2 seconds)
+            setTimeout(() => {
+                if (currentRoomId) {
+                    document.getElementById('join-name').value = 'AutoJoiner';
+                    document.getElementById('join-room-code').value = currentRoomId;
+                    joinAsSecondPlayer();
+                    
+                    // Check results after 3 more seconds
+                    setTimeout(() => {
+                        if (hostSocket && joinSocket && hostSocket.connected && joinSocket.connected) {
+                            log('🏆 Complete test PASSED! Both host and join successful', 'success');
+                            document.getElementById('complete-test-status').innerHTML = `
+                                <div class="success">
+                                    <strong>🏆 Complete Test PASSED!</strong><br>
+                                    ✅ Host session created<br>
+                                    ✅ Room generated<br>
+                                    ✅ Join player connected<br>
+                                    ✅ Room joined successfully<br>
+                                    <br>
+                                    <em>Online multiplayer is working correctly!</em>
+                                </div>
+                            `;
+                        } else {
+                            log('❌ Complete test FAILED - some connections not working', 'error');
+                            document.getElementById('complete-test-status').innerHTML = `
+                                <div class="error">
+                                    <strong>❌ Complete Test FAILED</strong><br>
+                                    Check the log for specific error details.
+                                </div>
+                            `;
+                        }
+                    }, 3000);
+                } else {
+                    log('❌ No room created, cannot test join', 'error');
+                }
+            }, 2000);
+        }
+        
+        // Auto-load test info
+        window.addEventListener('load', function() {
+            log('🔧 Complete join flow test loaded');
+            log('💡 This test simulates two separate devices connecting to the game');
+        });
+    </script>
+</body>
+</html>

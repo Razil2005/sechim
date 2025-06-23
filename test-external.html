@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 250px; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>External Connection Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Connection to External IP</h3>
+        <p>Based on server logs, the external IP should be: <strong>192.168.100.7:3000</strong></p>
+        <input type="text" id="external-ip" value="192.168.100.7:3000" placeholder="IP:Port">
+        <button onclick="testExternalConnection()">Test External Connection</button>
+        <div id="external-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Localhost Connection</h3>
+        <button onclick="testLocalConnection()">Test Localhost Connection</button>
+        <div id="local-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Network Information</h3>
+        <button onclick="getNetworkInfo()">Get Network Info</button>
+        <div id="network-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Connection Log</h3>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function testExternalConnection() {
+            const externalIP = document.getElementById('external-ip').value;
+            log(`Testing connection to external IP: ${externalIP}`);
+            
+            try {
+                // Load Socket.IO from external server
+                const script = document.createElement('script');
+                script.src = `http://${externalIP}/socket.io/socket.io.js`;
+                script.onload = () => {
+                    log('✅ Socket.IO script loaded from external server', 'success');
+                    
+                    // Try to connect
+                    const externalSocket = io(`http://${externalIP}`);
+                    
+                    const timeout = setTimeout(() => {
+                        log('❌ Connection timeout to external server', 'error');
+                        document.getElementById('external-status').innerHTML = `
+                            <div class="error">Connection timeout to ${externalIP}</div>
+                        `;
+                        externalSocket.disconnect();
+                    }, 10000);
+                    
+                    externalSocket.on('connect', () => {
+                        clearTimeout(timeout);
+                        log(`✅ Successfully connected to external server! Socket ID: ${externalSocket.id}`, 'success');
+                        document.getElementById('external-status').innerHTML = `
+                            <div class="success">✅ Connected to ${externalIP}<br>Socket ID: ${externalSocket.id}</div>
+                        `;
+                        
+                        // Test room creation
+                        externalSocket.emit('create-room', { playerName: 'ExternalTest' });
+                        externalSocket.on('room-created', (data) => {
+                            if (data.success) {
+                                log(`✅ Room created from external connection: ${data.roomId}`, 'success');
+                            }
+                        });
+                    });
+                    
+                    externalSocket.on('connect_error', (error) => {
+                        clearTimeout(timeout);
+                        log(`❌ Connection error to external server: ${error.message}`, 'error');
+                        document.getElementById('external-status').innerHTML = `
+                            <div class="error">Connection error: ${error.message}</div>
+                        `;
+                    });
+                    
+                    externalSocket.on('disconnect', () => {
+                        log('External connection disconnected');
+                    });
+                };
+                
+                script.onerror = () => {
+                    log('❌ Failed to load Socket.IO from external server', 'error');
+                    document.getElementById('external-status').innerHTML = `
+                        <div class="error">Failed to load Socket.IO from ${externalIP}</div>
+                    `;
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                log(`❌ Error testing external connection: ${error.message}`, 'error');
+            }
+        }
+        
+        function testLocalConnection() {
+            log('Testing localhost connection...');
+            
+            // Load Socket.IO from localhost
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            script.onload = () => {
+                log('✅ Socket.IO script loaded from localhost', 'success');
+                
+                const localSocket = io();
+                
+                const timeout = setTimeout(() => {
+                    log('❌ Connection timeout to localhost', 'error');
+                    document.getElementById('local-status').innerHTML = `
+                        <div class="error">Connection timeout to localhost</div>
+                    `;
+                }, 5000);
+                
+                localSocket.on('connect', () => {
+                    clearTimeout(timeout);
+                    log(`✅ Successfully connected to localhost! Socket ID: ${localSocket.id}`, 'success');
+                    document.getElementById('local-status').innerHTML = `
+                        <div class="success">✅ Connected to localhost<br>Socket ID: ${localSocket.id}</div>
+                    `;
+                });
+                
+                localSocket.on('connect_error', (error) => {
+                    clearTimeout(timeout);
+                    log(`❌ Connection error to localhost: ${error.message}`, 'error');
+                    document.getElementById('local-status').innerHTML = `
+                        <div class="error">Connection error: ${error.message}</div>
+                    `;
+                });
+            };
+            
+            script.onerror = () => {
+                log('❌ Failed to load Socket.IO from localhost', 'error');
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        function getNetworkInfo() {
+            log('Getting network information...');
+            
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Current URL': window.location.href,
+                'Hostname': window.location.hostname,
+                'Port': window.location.port,
+                'Protocol': window.location.protocol,
+                'Local Time': new Date().toString()
+            };
+            
+            let infoHTML = '<div>';
+            for (const [key, value] of Object.entries(info)) {
+                infoHTML += `<strong>${key}:</strong> ${value}<br>`;
+            }
+            infoHTML += '</div>';
+            
+            document.getElementById('network-info').innerHTML = infoHTML;
+            log('Network information displayed');
+        }
+        
+        // Auto-load network info
+        window.addEventListener('load', function() {
+            log('External connection test page loaded');
+            getNetworkInfo();
+        });
+    </script>
+</body>
+</html>

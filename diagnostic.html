@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Connection Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Socket.IO Connection Diagnostic</h1>
+    <p>This page will help diagnose connection issues with the multiplayer game system.</p>
+
+    <div class="test-box">
+        <h3>🔍 Step 1: Library Loading</h3>
+        <div id="library-status" class="status info">Checking Socket.IO library...</div>
+        <div class="step">
+            <strong>What this checks:</strong> Whether the Socket.IO client library is properly loaded from the server.
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h3>🌐 Step 2: Server Connection</h3>
+        <div id="connection-status" class="status info">Waiting for library check...</div>
+        <button id="retry-connection" style="display: none;">Retry Connection</button>
+        <div class="step">
+            <strong>What this checks:</strong> Whether we can establish a WebSocket connection to the server.
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h3>🎮 Step 3: Game System</h3>
+        <div id="game-status" class="status info">Waiting for connection...</div>
+        <button id="test-create-room" style="display: none;">Test Create Room</button>
+        <div class="step">
+            <strong>What this checks:</strong> Whether the OnlineGameManager class is working properly.
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h3>📋 Diagnostic Log</h3>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="runFullDiagnostic()">Run Full Diagnostic</button>
+    </div>
+
+    <!-- Try to load Socket.IO with error handling -->
+    <script>
+        let socket = null;
+        let onlineGameManager = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logDiv.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        // Step 1: Check Socket.IO library loading
+        function checkLibraryLoading() {
+            log('Starting Socket.IO library check...');
+            
+            // Create a script element to load Socket.IO
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            
+            script.onload = function() {
+                log('Socket.IO script loaded successfully', 'success');
+                if (typeof io !== 'undefined') {
+                    updateStatus('library-status', '✅ Socket.IO library loaded successfully', 'success');
+                    log('Socket.IO global object available', 'success');
+                    checkServerConnection();
+                } else {
+                    updateStatus('library-status', '❌ Socket.IO loaded but io object not available', 'error');
+                    log('Socket.IO script loaded but io object not found', 'error');
+                }
+            };
+            
+            script.onerror = function() {
+                updateStatus('library-status', '❌ Failed to load Socket.IO library', 'error');
+                log('Failed to load Socket.IO script from server', 'error');
+                log('This usually means:', 'warning');
+                log('  1. Server is not running on port 3000', 'warning');
+                log('  2. Network connectivity issues', 'warning');
+                log('  3. Firewall blocking the connection', 'warning');
+                
+                // Show manual server check
+                showServerCheckInstructions();
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Step 2: Check server connection
+        function checkServerConnection() {
+            log('Attempting to connect to server...');
+            updateStatus('connection-status', '🔄 Connecting to server...', 'warning');
+            
+            try {
+                socket = io();
+                
+                socket.on('connect', function() {
+                    log(`Connected to server successfully! Socket ID: ${socket.id}`, 'success');
+                    updateStatus('connection-status', `✅ Connected to server (ID: ${socket.id})`, 'success');
+                    checkGameSystem();
+                });
+                
+                socket.on('disconnect', function() {
+                    log('Disconnected from server', 'warning');
+                    updateStatus('connection-status', '⚠️ Disconnected from server', 'warning');
+                });
+                
+                socket.on('connect_error', function(error) {
+                    log(`Connection error: ${error.message}`, 'error');
+                    updateStatus('connection-status', '❌ Connection failed', 'error');
+                    document.getElementById('retry-connection').style.display = 'inline-block';
+                });
+                
+                // Timeout if connection takes too long
+                setTimeout(function() {
+                    if (!socket.connected) {
+                        log('Connection timeout - server may not be responding', 'error');
+                        updateStatus('connection-status', '❌ Connection timeout', 'error');
+                        document.getElementById('retry-connection').style.display = 'inline-block';
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                log(`Error creating socket connection: ${error.message}`, 'error');
+                updateStatus('connection-status', '❌ Failed to create connection', 'error');
+            }
+        }
+        
+        // Step 3: Check game system
+        function checkGameSystem() {
+            log('Loading game system components...');
+            
+            // Load the OnlineGameManager class
+            const gameScript = document.createElement('script');
+            gameScript.src = 'js/online-game.js';
+            
+            gameScript.onload = function() {
+                log('Game script loaded', 'success');
+                
+                setTimeout(function() {
+                    if (typeof OnlineGameManager !== 'undefined') {
+                        log('OnlineGameManager class is available', 'success');
+                        
+                        try {
+                            // Don't create an instance yet, just verify it's available
+                            updateStatus('game-status', '✅ Game system ready', 'success');
+                            document.getElementById('test-create-room').style.display = 'inline-block';
+                            log('✅ All systems operational!', 'success');
+                        } catch (error) {
+                            log(`Error with OnlineGameManager: ${error.message}`, 'error');
+                            updateStatus('game-status', '❌ Game system error', 'error');
+                        }
+                    } else {
+                        log('OnlineGameManager class not found', 'error');
+                        updateStatus('game-status', '❌ Game class not available', 'error');
+                    }
+                }, 500);
+            };
+            
+            gameScript.onerror = function() {
+                log('Failed to load game script', 'error');
+                updateStatus('game-status', '❌ Failed to load game system', 'error');
+            };
+            
+            document.head.appendChild(gameScript);
+        }
+        
+        function showServerCheckInstructions() {
+            const instructions = `
+Server Check Instructions:
+1. Open PowerShell/Command Prompt
+2. Run: cd "c:\\Users\\Razil\\Desktop\\secimupdated"
+3. Run: node server.js
+4. Look for "Server running on port 3000"
+5. If you see errors, check if port 3000 is already in use
+6. Refresh this page after starting the server`;
+            
+            log(instructions, 'warning');
+        }
+        
+        // Test create room functionality
+        document.getElementById('test-create-room').addEventListener('click', function() {
+            log('Testing create room functionality...');
+            
+            try {
+                if (typeof OnlineGameManager === 'undefined') {
+                    log('OnlineGameManager not available', 'error');
+                    return;
+                }
+                
+                if (!socket || !socket.connected) {
+                    log('Socket not connected', 'error');
+                    return;
+                }
+                
+                // Create a test instance
+                const testManager = new OnlineGameManager();
+                log('Test OnlineGameManager created successfully', 'success');
+                
+                // Override showLobby to capture success
+                testManager.showLobby = function() {
+                    log(`✅ CREATE ROOM SUCCESS! Room ID: ${this.roomId}`, 'success');
+                };
+                
+                // Test create room
+                testManager.createRoom('TestPlayer');
+                log('Create room request sent...', 'info');
+                
+            } catch (error) {
+                log(`Create room test failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Retry connection button
+        document.getElementById('retry-connection').addEventListener('click', function() {
+            log('Retrying connection...');
+            this.style.display = 'none';
+            checkServerConnection();
+        });
+        
+        function runFullDiagnostic() {
+            clearLog();
+            log('🚀 Starting full diagnostic...', 'info');
+            
+            // Reset all statuses
+            updateStatus('library-status', 'Checking Socket.IO library...', 'info');
+            updateStatus('connection-status', 'Waiting for library check...', 'info');
+            updateStatus('game-status', 'Waiting for connection...', 'info');
+            
+            // Hide buttons
+            document.getElementById('retry-connection').style.display = 'none';
+            document.getElementById('test-create-room').style.display = 'none';
+            
+            // Start the diagnostic
+            checkLibraryLoading();
+        }
+        
+        // Start diagnostic when page loads
+        setTimeout(runFullDiagnostic, 500);
+    </script>
+</body>
+</html>

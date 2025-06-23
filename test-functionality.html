@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 15px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Quiz Game Functionality Test</h1>
+    
+    <div id="socket-test" class="test-section">
+        <h3>Socket.IO Connection Test</h3>
+        <p id="socket-status">Testing...</p>
+        <button onclick="testSocketConnection()">Test Connection</button>
+    </div>
+    
+    <div id="online-game-test" class="test-section">
+        <h3>OnlineGameManager Test</h3>
+        <p id="online-game-status">Testing...</p>
+        <button onclick="testOnlineGameManager()">Test OnlineGameManager</button>
+    </div>
+    
+    <div id="create-room-test" class="test-section">
+        <h3>Create Room Test</h3>
+        <input type="text" id="test-name" placeholder="Enter test name" value="TestPlayer">
+        <button onclick="testCreateRoom()">Test Create Room</button>
+        <p id="create-room-status">Ready to test</p>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/online-game.js"></script>
+    <script>
+        let testSocket = null;
+        
+        function testSocketConnection() {
+            const status = document.getElementById('socket-status');
+            status.textContent = 'Connecting...';
+            
+            testSocket = io();
+            
+            testSocket.on('connect', () => {
+                status.textContent = 'Connected successfully! Socket ID: ' + testSocket.id;
+                status.parentElement.classList.add('success');
+            });
+            
+            testSocket.on('disconnect', () => {
+                status.textContent = 'Disconnected';
+                status.parentElement.classList.remove('success');
+            });
+            
+            testSocket.on('connect_error', (error) => {
+                status.textContent = 'Connection failed: ' + error.message;
+                status.parentElement.classList.add('error');
+            });
+        }
+        
+        function testOnlineGameManager() {
+            const status = document.getElementById('online-game-status');
+            
+            setTimeout(() => {
+                if (typeof onlineGame !== 'undefined' && onlineGame) {
+                    status.textContent = 'OnlineGameManager is available and initialized';
+                    status.parentElement.classList.add('success');
+                } else {
+                    status.textContent = 'OnlineGameManager is not available';
+                    status.parentElement.classList.add('error');
+                }
+            }, 100);
+        }
+        
+        function testCreateRoom() {
+            const status = document.getElementById('create-room-status');
+            const playerName = document.getElementById('test-name').value.trim();
+            
+            if (!playerName) {
+                status.textContent = 'Please enter a test name';
+                return;
+            }
+            
+            if (typeof onlineGame === 'undefined' || !onlineGame) {
+                status.textContent = 'OnlineGameManager not available';
+                status.parentElement.classList.add('error');
+                return;
+            }
+            
+            status.textContent = 'Testing room creation...';
+            
+            // Listen for room creation response
+            onlineGame.socket.on('room-created', (data) => {
+                if (data.success) {
+                    status.textContent = 'Room created successfully! Room ID: ' + data.roomId;
+                    status.parentElement.classList.add('success');
+                } else {
+                    status.textContent = 'Room creation failed: ' + (data.message || 'Unknown error');
+                    status.parentElement.classList.add('error');
+                }
+            });
+            
+            // Create the room
+            onlineGame.createRoom(playerName);
+        }
+        
+        // Auto-run tests when page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testSocketConnection();
+                testOnlineGameManager();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game - Offline Version</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Warning Banner -->
+        <div style="background: #ff9800; color: white; padding: 15px; text-align: center; margin-bottom: 20px; border-radius: 8px;">
+            <strong>⚠️ OFFLINE VERSION</strong><br>
+            This version only supports single-player and local multiplayer on the same device.<br>
+            For online multiplayer, please use the server version (run START_SERVER.bat).
+        </div>
+
+        <!-- Mode Selection -->
+        <div id="mode-selection" class="section">
+            <h1>Quiz Elimination Game</h1>
+            <div class="mode-buttons">
+                <button class="mode-btn" data-mode="single">
+                    <span class="mode-icon">👤</span>
+                    <span>Single Player</span>
+                </button>
+                <button class="mode-btn" data-mode="multi">
+                    <span class="mode-icon">👥</span>
+                    <span>Local Multiplayer</span>
+                </button>
+                <button class="mode-btn" onclick="showOnlineInfo()" style="opacity: 0.6;">
+                    <span class="mode-icon">🌐</span>
+                    <span>Online (Requires Server)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Selection -->
+        <div id="category-selection" class="section hidden">
+            <h2>Choose a Category</h2>
+            <div class="categories-grid">
+                <div class="category-card" data-category="friends">
+                    <div class="category-icon">👫</div>
+                    <h3>Friends</h3>
+                </div>
+                <div class="category-card" data-category="teachers">
+                    <div class="category-icon">👨‍🏫</div>
+                    <h3>Teachers</h3>
+                </div>
+                <div class="category-card" data-category="countries">
+                    <div class="category-icon">🌍</div>
+                    <h3>Countries</h3>
+                </div>
+                <div class="category-card" data-category="movies">
+                    <div class="category-icon">🎬</div>
+                    <h3>Movies</h3>
+                </div>
+                <div class="category-card" data-category="books">
+                    <div class="category-icon">📚</div>
+                    <h3>Books</h3>
+                </div>
+                <div class="category-card" data-category="football-players">
+                    <div class="category-icon">⚽</div>
+                    <h3>Football Players</h3>
+                </div>
+                <div class="category-card" data-category="football-clubs">
+                    <div class="category-icon">🏆</div>
+                    <h3>Football Clubs</h3>
+                </div>
+                <div class="category-card" data-category="fruits">
+                    <div class="category-icon">🍎</div>
+                    <h3>Fruits</h3>
+                </div>
+                <div class="category-card" data-category="songs">
+                    <div class="category-icon">🎵</div>
+                    <h3>Songs</h3>
+                </div>
+                <div class="category-card" data-category="universities">
+                    <div class="category-icon">🎓</div>
+                    <h3>Universities</h3>
+                </div>
+                <div class="category-card" data-category="cities">
+                    <div class="category-icon">🏙️</div>
+                    <h3>Cities</h3>
+                </div>
+                <div class="category-card" data-category="animals">
+                    <div class="category-icon">🐾</div>
+                    <h3>Animals</h3>
+                </div>
+                <div class="category-card" data-category="cars">
+                    <div class="category-icon">🚗</div>
+                    <h3>Cars</h3>
+                </div>
+                <div class="category-card" data-category="games">
+                    <div class="category-icon">🎮</div>
+                    <h3>Games</h3>
+                </div>
+                <div class="category-card" data-category="food">
+                    <div class="category-icon">🍕</div>
+                    <h3>Food</h3>
+                </div>
+                <div class="category-card" data-category="programming-languages">
+                    <div class="category-icon">💻</div>
+                    <h3>Programming Languages</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="section hidden">
+            <div class="game-header">
+                <h2 id="game-title">Choose Your Favorite</h2>
+                <div class="game-info">
+                    <span id="remaining-count">Remaining: 0</span>
+                    <span id="round-number">Round: 1</span>
+                </div>
+            </div>
+
+            <!-- Single Player Game -->
+            <div id="single-player-game" class="game-container">
+                <div class="options-container">
+                    <div class="option-card" id="option1">
+                        <img src="" alt="" class="option-image">
+                        <h3 class="option-name"></h3>
+                        <div class="selection-overlay">
+                            <span class="selection-badge">✓</span>
+                        </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="option-card" id="option2">
+                        <img src="" alt="" class="option-image">
+                        <h3 class="option-name"></h3>
+                        <div class="selection-overlay">
+                            <span class="selection-badge">✓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi Player Game -->
+            <div id="multi-player-game" class="game-container hidden">
+                <div class="turn-indicator">
+                    <h3 id="current-player">Player 1's Turn</h3>
+                </div>
+                <div class="options-container">
+                    <div class="option-card" id="mp-option1">
+                        <img src="" alt="" class="option-image">
+                        <h3 class="option-name"></h3>
+                        <div class="selection-overlay">
+                            <span class="selection-badge">✓</span>
+                        </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="option-card" id="mp-option2">
+                        <img src="" alt="" class="option-image">
+                        <h3 class="option-name"></h3>
+                        <div class="selection-overlay">
+                            <span class="selection-badge">✓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Winner Screen -->
+        <div id="winner-screen" class="section hidden">
+            <div class="winner-container">
+                <h2>🎉 Winner! 🎉</h2>
+                <div class="winner-card">
+                    <img src="" alt="" id="winner-image" class="winner-image">
+                    <h3 id="winner-name" class="winner-name"></h3>
+                </div>
+                <button id="play-again" class="btn-primary">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <button id="back-btn" class="back-btn hidden">← Back</button>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script>
+        // Offline version - simplified main.js without online functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const modeSelection = document.getElementById('mode-selection');
+            const categorySelection = document.getElementById('category-selection');
+            const gameScreen = document.getElementById('game-screen');
+            const winnerScreen = document.getElementById('winner-screen');
+            const singlePlayerGame = document.getElementById('single-player-game');
+            const multiPlayerGame = document.getElementById('multi-player-game');
+            const backBtn = document.getElementById('back-btn');
+
+            let selectedMode = null;
+            let selectedCategory = null;
+
+            // Mode selection handlers
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectedMode = this.dataset.mode;
+                    if (selectedMode) {
+                        showCategorySelection();
+                    }
+                });
+            });
+
+            // Category selection handlers
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectedCategory = this.dataset.category;
+                    startGame();
+                });
+            });
+
+            // Play again button
+            document.getElementById('play-again').addEventListener('click', resetToHome);
+
+            // Back button
+            backBtn.addEventListener('click', goBack);
+
+            function showCategorySelection() {
+                modeSelection.classList.add('hidden');
+                categorySelection.classList.remove('hidden');
+                backBtn.classList.remove('hidden');
+            }
+
+            function startGame() {
+                categorySelection.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                
+                if (selectedMode === 'single') {
+                    singlePlayerGame.classList.remove('hidden');
+                    multiPlayerGame.classList.add('hidden');
+                } else {
+                    singlePlayerGame.classList.add('hidden');
+                    multiPlayerGame.classList.remove('hidden');
+                }
+                
+                game.init(selectedMode, selectedCategory);
+                
+                const categoryName = selectedCategory.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                document.getElementById('game-title').textContent = `Choose Your Favorite ${categoryName}`;
+            }
+
+            function goBack() {
+                if (!gameScreen.classList.contains('hidden')) {
+                    gameScreen.classList.add('hidden');
+                    categorySelection.classList.remove('hidden');
+                    game.reset();
+                } else if (!categorySelection.classList.contains('hidden')) {
+                    categorySelection.classList.add('hidden');
+                    modeSelection.classList.remove('hidden');
+                    backBtn.classList.add('hidden');
+                    selectedMode = null;
+                } else if (!winnerScreen.classList.contains('hidden')) {
+                    resetToHome();
+                }
+            }
+
+            function resetToHome() {
+                winnerScreen.classList.add('hidden');
+                gameScreen.classList.add('hidden');
+                categorySelection.classList.add('hidden');
+                modeSelection.classList.remove('hidden');
+                backBtn.classList.add('hidden');
+                selectedMode = null;
+                selectedCategory = null;
+                game.reset();
+            }
+        });
+
+        function showOnlineInfo() {
+            alert('For online multiplayer:\n\n1. Install Node.js\n2. Run START_SERVER.bat\n3. Use the regular index.html\n\nThis offline version only supports local play.');
+        }
+    </script>
+</body>
+</html>

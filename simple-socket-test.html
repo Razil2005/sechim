@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Socket.IO Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        #log { background: white; border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; font-family: monospace; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Simple Socket.IO Connection Test</h1>
+    
+    <div id="socket-status" class="status info">Testing Socket.IO...</div>
+    <div id="connection-status" class="status info">Waiting...</div>
+    
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <h3>Debug Log:</h3>
+    <div id="log"></div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function updateStatus(id, message, type) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.className = `status ${type}`;
+        }
+        
+        function testConnection() {
+            log('=== Starting Socket.IO Test ===');
+            
+            // Step 1: Check if we can load the Socket.IO script
+            log('Step 1: Loading Socket.IO library...');
+            updateStatus('socket-status', 'Loading Socket.IO library...', 'warning');
+            
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            
+            script.onload = function() {
+                log('✅ Socket.IO script loaded successfully');
+                
+                if (typeof io !== 'undefined') {
+                    log('✅ io object is available');
+                    updateStatus('socket-status', '✅ Socket.IO library loaded', 'success');
+                    
+                    // Step 2: Try to connect
+                    log('Step 2: Attempting connection...');
+                    updateStatus('connection-status', 'Connecting...', 'warning');
+                    
+                    try {
+                        const socket = io();
+                        
+                        socket.on('connect', function() {
+                            log(`✅ Connected! Socket ID: ${socket.id}`);
+                            updateStatus('connection-status', `✅ Connected (${socket.id})`, 'success');
+                        });
+                        
+                        socket.on('disconnect', function() {
+                            log('❌ Disconnected');
+                            updateStatus('connection-status', '❌ Disconnected', 'error');
+                        });
+                        
+                        socket.on('connect_error', function(error) {
+                            log(`❌ Connection error: ${error.message}`);
+                            updateStatus('connection-status', '❌ Connection failed', 'error');
+                        });
+                        
+                        // Timeout check
+                        setTimeout(() => {
+                            if (!socket.connected) {
+                                log('❌ Connection timeout (5 seconds)');
+                                updateStatus('connection-status', '❌ Connection timeout', 'error');
+                            }
+                        }, 5000);
+                        
+                    } catch (error) {
+                        log(`❌ Error creating socket: ${error.message}`);
+                        updateStatus('connection-status', '❌ Socket creation failed', 'error');
+                    }
+                    
+                } else {
+                    log('❌ io object not found after script load');
+                    updateStatus('socket-status', '❌ io object not available', 'error');
+                }
+            };
+            
+            script.onerror = function() {
+                log('❌ Failed to load Socket.IO script');
+                updateStatus('socket-status', '❌ Failed to load Socket.IO', 'error');
+                
+                log('Possible causes:');
+                log('  - Server not running');
+                log('  - Port 3000 blocked');
+                log('  - Network connectivity issue');
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Auto-start test
+        setTimeout(testConnection, 500);
+    </script>
+</body>
+</html>

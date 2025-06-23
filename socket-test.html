@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Socket.IO Connection Diagnostic</h1>
+    
+    <div id="socket-io-test" class="status warning">
+        Testing Socket.IO library loading...
+    </div>
+    
+    <div id="connection-test" class="status warning">
+        Testing server connection...
+    </div>
+    
+    <div id="endpoint-test" class="status warning">
+        Testing Socket.IO endpoint...
+    </div>
+    
+    <button onclick="testConnection()">Retry Connection Test</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log"></div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        // Test 1: Check if Socket.IO script loads
+        function testSocketIOLibrary() {
+            log('=== Testing Socket.IO Library ===');
+            
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            
+            script.onload = function() {
+                log('Socket.IO script loaded successfully');
+                if (typeof io !== 'undefined') {
+                    updateStatus('socket-io-test', '✓ Socket.IO library loaded', 'success');
+                    log('Socket.IO function is available');
+                    testServerConnection();
+                } else {
+                    updateStatus('socket-io-test', '✗ Socket.IO function not available', 'error');
+                    log('ERROR: Socket.IO loaded but function not available');
+                }
+            };
+            
+            script.onerror = function() {
+                updateStatus('socket-io-test', '✗ Failed to load Socket.IO library', 'error');
+                log('ERROR: Failed to load Socket.IO script from /socket.io/socket.io.js');
+                testSocketIOEndpoint();
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Test 2: Test server connection
+        function testServerConnection() {
+            log('=== Testing Server Connection ===');
+            
+            try {
+                const socket = io();
+                
+                const connectTimeout = setTimeout(() => {
+                    updateStatus('connection-test', '✗ Connection timeout', 'error');
+                    log('ERROR: Connection timeout (10 seconds)');
+                    socket.disconnect();
+                }, 10000);
+                
+                socket.on('connect', () => {
+                    clearTimeout(connectTimeout);
+                    updateStatus('connection-test', '✓ Connected to server', 'success');
+                    log(`SUCCESS: Connected with socket ID: ${socket.id}`);
+                    
+                    socket.on('disconnect', () => {
+                        log('Disconnected from server');
+                    });
+                    
+                    // Test a simple event
+                    socket.emit('test-connection', 'Hello server');
+                    log('Sent test message to server');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    clearTimeout(connectTimeout);
+                    updateStatus('connection-test', '✗ Connection error', 'error');
+                    log(`ERROR: Connection error - ${error.message}`);
+                });
+                
+            } catch (error) {
+                updateStatus('connection-test', '✗ Socket creation failed', 'error');
+                log(`ERROR: Failed to create socket - ${error.message}`);
+            }
+        }
+        
+        // Test 3: Test Socket.IO endpoint directly
+        function testSocketIOEndpoint() {
+            log('=== Testing Socket.IO Endpoint ===');
+            
+            fetch('/socket.io/?EIO=4&transport=polling')
+                .then(response => {
+                    if (response.ok) {
+                        updateStatus('endpoint-test', '✓ Socket.IO endpoint accessible', 'success');
+                        log('Socket.IO endpoint is accessible');
+                        return response.text();
+                    } else {
+                        updateStatus('endpoint-test', '✗ Socket.IO endpoint error', 'error');
+                        log(`ERROR: Socket.IO endpoint returned ${response.status}`);
+                    }
+                })
+                .then(text => {
+                    if (text) {
+                        log(`Socket.IO endpoint response: ${text.substring(0, 100)}...`);
+                    }
+                })
+                .catch(error => {
+                    updateStatus('endpoint-test', '✗ Socket.IO endpoint unreachable', 'error');
+                    log(`ERROR: Cannot reach Socket.IO endpoint - ${error.message}`);
+                });
+        }
+        
+        function testConnection() {
+            log('\n=== STARTING NEW CONNECTION TEST ===');
+            updateStatus('socket-io-test', 'Testing...', 'warning');
+            updateStatus('connection-test', 'Testing...', 'warning');
+            updateStatus('endpoint-test', 'Testing...', 'warning');
+            
+            // Remove any existing Socket.IO script
+            const existingScript = document.querySelector('script[src*="socket.io.js"]');
+            if (existingScript) {
+                existingScript.remove();
+                log('Removed existing Socket.IO script');
+            }
+            
+            testSocketIOLibrary();
+        }
+        
+        // Start tests when page loads
+        window.addEventListener('load', function() {
+            log('Page loaded, starting diagnostic tests...');
+            testConnection();
+        });
+    </script>
+</body>
+</html>

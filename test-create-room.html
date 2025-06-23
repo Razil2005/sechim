@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Create Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create Room Test</h1>
+    
+    <div class="test-section">
+        <h3>Initialization Status</h3>
+        <div id="socket-status" class="status warning">Checking Socket.IO...</div>
+        <div id="online-game-status" class="status warning">Checking OnlineGameManager...</div>
+        <div id="connection-status" class="status warning">Checking Connection...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Create Room Test</h3>
+        <input type="text" id="player-name" placeholder="Enter your name" value="TestPlayer">
+        <button id="create-room-btn">Create Room</button>
+        <div id="room-result" class="status" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Debug Log</h3>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/online-game.js"></script>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        // Check initialization status
+        function checkInitialization() {
+            log('Starting initialization check...');
+            
+            // Check Socket.IO
+            if (typeof io !== 'undefined') {
+                updateStatus('socket-status', 'Socket.IO library loaded ✓', 'success');
+                log('Socket.IO library is available');
+            } else {
+                updateStatus('socket-status', 'Socket.IO library not found ✗', 'error');
+                log('ERROR: Socket.IO library not found');
+            }
+            
+            // Check OnlineGameManager
+            if (typeof OnlineGameManager !== 'undefined') {
+                log('OnlineGameManager class is available');
+                
+                // Check if onlineGame instance exists
+                if (typeof onlineGame !== 'undefined' && onlineGame) {
+                    updateStatus('online-game-status', 'OnlineGameManager initialized ✓', 'success');
+                    log('onlineGame instance exists');
+                    
+                    // Check connection
+                    if (onlineGame.connected) {
+                        updateStatus('connection-status', 'Connected to server ✓', 'success');
+                        log('Socket is connected');
+                    } else {
+                        updateStatus('connection-status', 'Connecting to server...', 'warning');
+                        log('Socket not connected yet, waiting...');
+                        
+                        // Wait for connection
+                        setTimeout(() => {
+                            if (onlineGame && onlineGame.connected) {
+                                updateStatus('connection-status', 'Connected to server ✓', 'success');
+                                log('Socket connected successfully');
+                            } else {
+                                updateStatus('connection-status', 'Connection failed ✗', 'error');
+                                log('ERROR: Socket connection failed');
+                            }
+                        }, 2000);
+                    }
+                } else {
+                    updateStatus('online-game-status', 'OnlineGameManager not initialized ✗', 'error');
+                    log('ERROR: onlineGame instance not found');
+                }
+            } else {
+                updateStatus('online-game-status', 'OnlineGameManager class not found ✗', 'error');
+                log('ERROR: OnlineGameManager class not found');
+            }
+        }
+        
+        // Test create room
+        document.getElementById('create-room-btn').addEventListener('click', function() {
+            const playerName = document.getElementById('player-name').value.trim();
+            const resultDiv = document.getElementById('room-result');
+            
+            log(`Attempting to create room with name: ${playerName}`);
+            
+            if (!playerName) {
+                resultDiv.textContent = 'Please enter a player name';
+                resultDiv.className = 'status error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // Check if onlineGame is available
+            if (typeof onlineGame === 'undefined' || !onlineGame) {
+                log('ERROR: onlineGame not available');
+                resultDiv.textContent = 'OnlineGame not initialized';
+                resultDiv.className = 'status error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!onlineGame.connected) {
+                log('ERROR: Socket not connected');
+                resultDiv.textContent = 'Not connected to server';
+                resultDiv.className = 'status error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            log('Calling onlineGame.createRoom()...');
+            
+            // Override the showLobby method to show result instead
+            const originalShowLobby = onlineGame.showLobby;
+            onlineGame.showLobby = function() {
+                log(`SUCCESS: Room created with ID: ${this.roomId}`);
+                resultDiv.textContent = `Room created successfully! Room ID: ${this.roomId}`;
+                resultDiv.className = 'status success';
+                resultDiv.style.display = 'block';
+                
+                // Restore original method
+                this.showLobby = originalShowLobby;
+            };
+            
+            try {
+                onlineGame.createRoom(playerName);
+            } catch (error) {
+                log(`ERROR: Exception during createRoom: ${error.message}`);
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.className = 'status error';
+                resultDiv.style.display = 'block';
+            }
+        });
+        
+        // Start checking after a short delay
+        setTimeout(checkInitialization, 500);
+        
+        // Also check periodically
+        setInterval(() => {
+            if (typeof onlineGame !== 'undefined' && onlineGame && onlineGame.connected) {
+                updateStatus('connection-status', 'Connected to server ✓', 'success');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

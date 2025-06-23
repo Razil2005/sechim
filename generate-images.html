@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Sample Images</title>
+</head>
+<body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function createImage(text, bgColor, textColor = 'white') {
+            // Clear canvas
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 400, 400);
+            
+            // Add text
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 200, 200);
+            
+            return canvas.toDataURL('image/jpeg');
+        }
+
+        // Countries
+        const countries = [
+            { name: 'Turkey', color: '#e74c3c' },
+            { name: 'USA', color: '#3498db' },
+            { name: 'Germany', color: '#f39c12' },
+            { name: 'France', color: '#9b59b6' },
+            { name: 'Italy', color: '#2ecc71' },
+            { name: 'Spain', color: '#e67e22' },
+            { name: 'UK', color: '#34495e' },
+            { name: 'Japan', color: '#e91e63' },
+            { name: 'Brazil', color: '#f1c40f' },
+            { name: 'Canada', color: '#95a5a6' },
+            { name: 'Australia', color: '#1abc9c' },
+            { name: 'Netherlands', color: '#ff7675' }
+        ];
+
+        // Movies
+        const movies = [
+            { name: 'Shawshank Redemption', color: '#2c3e50' },
+            { name: 'The Godfather', color: '#8b4513' },
+            { name: 'Dark Knight', color: '#1a1a1a' },
+            { name: 'Pulp Fiction', color: '#ff6b6b' },
+            { name: 'Forrest Gump', color: '#4ecdc4' },
+            { name: 'Inception', color: '#45b7d1' },
+            { name: 'The Matrix', color: '#00ff00' },
+            { name: 'Interstellar', color: '#2f1b69' },
+            { name: 'Titanic', color: '#0077be' },
+            { name: 'Avatar', color: '#00a86b' },
+            { name: 'Avengers Endgame', color: '#ff4757' },
+            { name: 'Lion King', color: '#ffa502' }
+        ];
+
+        // Books
+        const books = [
+            { name: 'To Kill a Mockingbird', color: '#6c5ce7' },
+            { name: '1984', color: '#a29bfe' },
+            { name: 'Pride and Prejudice', color: '#fd79a8' },
+            { name: 'Great Gatsby', color: '#fdcb6e' },
+            { name: 'Harry Potter', color: '#e17055' },
+            { name: 'Lord of the Rings', color: '#00b894' },
+            { name: 'Catcher in the Rye', color: '#00cec9' },
+            { name: 'Game of Thrones', color: '#2d3436' },
+            { name: 'The Hobbit', color: '#636e72' },
+            { name: 'Dune', color: '#fab1a0' }
+        ];
+
+        // Football Players
+        const players = [
+            { name: 'Lionel Messi', color: '#0984e3' },
+            { name: 'Cristiano Ronaldo', color: '#00b894' },
+            { name: 'Neymar Jr', color: '#fdcb6e' },
+            { name: 'Kylian Mbappé', color: '#e17055' },
+            { name: 'Erling Haaland', color: '#fd79a8' },
+            { name: 'Kevin De Bruyne', color: '#6c5ce7' },
+            { name: 'Robert Lewandowski', color: '#a29bfe' },
+            { name: 'Mohamed Salah', color: '#00cec9' },
+            { name: 'Sadio Mané', color: '#2d3436' },
+            { name: 'Virgil van Dijk', color: '#636e72' },
+            { name: 'Luka Modrić', color: '#fab1a0' },
+            { name: 'Karim Benzema', color: '#ff7675' }
+        ];
+
+        // Football Clubs
+        const clubs = [
+            { name: 'FC Barcelona', color: '#004d98' },
+            { name: 'Real Madrid', color: '#ffffff', textColor: '#000000' },
+            { name: 'Manchester United', color: '#da020e' },
+            { name: 'Manchester City', color: '#6cabdd' },
+            { name: 'Liverpool', color: '#c8102e' },
+            { name: 'Chelsea', color: '#034694' },
+            { name: 'Arsenal', color: '#ef0107' },
+            { name: 'Tottenham', color: '#132257' },
+            { name: 'Bayern Munich', color: '#dc052d' },
+            { name: 'Paris Saint-Germain', color: '#004170' },
+            { name: 'Juventus', color: '#000000' },
+            { name: 'AC Milan', color: '#fb090b' }
+        ];
+
+        console.log('Use browser developer tools to save these images:');
+        
+        // Generate images
+        countries.forEach((item, index) => {
+            const dataUrl = createImage(item.name, item.color);
+            console.log(`Country ${index + 1} (${item.name}):`, dataUrl);
+        });
+        
+        movies.forEach((item, index) => {
+            const dataUrl = createImage(item.name, item.color);
+            console.log(`Movie ${index + 1} (${item.name}):`, dataUrl);
+        });
+        
+        books.forEach((item, index) => {
+            const dataUrl = createImage(item.name, item.color);
+            console.log(`Book ${index + 1} (${item.name}):`, dataUrl);
+        });
+        
+        players.forEach((item, index) => {
+            const dataUrl = createImage(item.name, item.color);
+            console.log(`Player ${index + 1} (${item.name}):`, dataUrl);
+        });
+        
+        clubs.forEach((item, index) => {
+            const dataUrl = createImage(item.name, item.color, item.textColor || 'white');
+            console.log(`Club ${index + 1} (${item.name}):`, dataUrl);
+        });
+    </script>
+</body>
+</html>

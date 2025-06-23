@@ -1,0 +1,651 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.section {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Mode Selection */
+.mode-buttons {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.mode-btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+    border-radius: 15px;
+    padding: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+.mode-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(79, 172, 254, 0.6);
+}
+
+.mode-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.mode-btn h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.mode-btn p {
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+/* Category Selection */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.category-card {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    box-shadow: 0 5px 15px rgba(250, 112, 154, 0.3);
+}
+
+.category-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(250, 112, 154, 0.5);
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.category-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Game Screen */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-header h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.game-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.options-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.option-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    min-width: 250px;
+    max-width: 300px;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.option-image {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.option-name {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.vs-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ff6b6b;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Multiplayer specific */
+.multiplayer-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.multiplayer-header h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+#vote-timer {
+    font-size: 1.2rem;
+    color: #4facfe;
+    font-weight: bold;
+    min-height: 30px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(79, 172, 254, 0.1);
+}
+
+.vote-count {
+    font-size: 1.1rem;
+    color: #4facfe;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.vote-btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 10px 25px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.vote-btn:hover {
+    transform: scale(1.05);
+}
+
+.vote-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.multiplayer-controls {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 15px 30px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Winner Screen */
+.winner-container {
+    text-align: center;
+}
+
+.winner-container h2 {
+    font-size: 3rem;
+    margin-bottom: 30px;
+    color: #ff6b6b;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.winner-card {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 30px auto;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.winner-image {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border: 5px solid white;
+}
+
+.winner-name {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Back Button */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.back-btn:hover {
+    background: white;
+    transform: translateX(-5px);
+}
+
+/* Selection feedback states */
+.option-card.selected {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(46, 204, 113, 0.5);
+    color: white;
+}
+
+.option-card.selected .option-name {
+    color: white;
+}
+
+.option-card.eliminated {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    transform: scale(0.95);
+    opacity: 0.7;
+    color: white;
+    position: relative;
+}
+
+.option-card.eliminated .option-name {
+    color: white;
+    text-decoration: line-through;
+}
+
+.option-card.eliminated::after {
+    content: "❌ ELIMINATED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+    z-index: 10;
+}
+
+.option-card.selected::after {
+    content: "✓ SELECTED";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    z-index: 10;
+}
+
+/* Multiplayer voting feedback */
+.option-card.voting.winner {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(46, 204, 113, 0.5);
+    color: white;
+}
+
+.option-card.voting.winner .option-name,
+.option-card.voting.winner .vote-count {
+    color: white;
+}
+
+.option-card.voting.loser {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    transform: scale(0.95);
+    opacity: 0.7;
+    color: white;
+}
+
+.option-card.voting.loser .option-name,
+.option-card.voting.loser .vote-count {
+    color: white;
+    text-decoration: line-through;
+}
+
+.option-card.voting.winner::after {
+    content: "🏆 WINNER";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    z-index: 10;
+}
+
+.option-card.voting.loser::after {
+    content: "❌ ELIMINATED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+    z-index: 10;
+}
+
+/* Online Mode Styles */
+.online-options {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.online-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    color: white;
+    min-width: 300px;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.online-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.online-card p {
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.online-card input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.online-card input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Lobby Styles */
+.lobby-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.room-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 10px;
+}
+
+#room-code-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.players-list {
+    margin-bottom: 30px;
+}
+
+.players-list h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+#players-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.player-card {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.player-card.host::after {
+    content: "👑 HOST";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ffd700;
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.player-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.lobby-controls {
+    text-align: center;
+}
+
+#waiting-message {
+    color: #666;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+/* Online Game Status */
+.online-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+}
+
+.online-status.disconnected {
+    background: rgba(231, 76, 60, 0.9);
+}
+
+.online-voting-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 10px;
+}
+
+.vote-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.vote-option {
+    flex: 1;
+    text-align: center;
+}
+
+.vote-bar {
+    height: 8px;
+    background: rgba(79, 172, 254, 0.3);
+    border-radius: 4px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.vote-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    transition: width 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .mode-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .mode-btn {
+        min-width: 200px;
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .options-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .vs-text {
+        transform: rotate(90deg);
+    }
+    
+    .option-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .winner-image {
+        width: 200px;
+        height: 200px;
+    }
+}

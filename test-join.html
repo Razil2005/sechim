@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Room Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        input, button { padding: 10px; margin: 5px; }
+        input { width: 200px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Join Room Test (Simulating Another Device)</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Create a Room (First Device)</h3>
+        <input type="text" id="host-name" placeholder="Host Name" value="Player1">
+        <button onclick="createRoom()">Create Room</button>
+        <div id="room-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Join the Room (Second Device)</h3>
+        <input type="text" id="join-name" placeholder="Joiner Name" value="Player2">
+        <input type="text" id="room-code" placeholder="Room Code" maxlength="6" style="text-transform: uppercase;">
+        <button onclick="joinRoom()">Join Room</button>
+        <div id="join-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Available Rooms on Server</h3>
+        <button onclick="checkRooms()">Check Available Rooms</button>
+        <div id="rooms-list"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Connection Log</h3>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/data.js"></script>
+    <script>
+        let socket1 = null; // Host socket
+        let socket2 = null; // Joiner socket
+        let currentRoomId = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function createRoom() {
+            const hostName = document.getElementById('host-name').value.trim();
+            if (!hostName) {
+                alert('Please enter host name');
+                return;
+            }
+            
+            log(`Creating room with host: ${hostName}`);
+            
+            // Create first socket for host
+            socket1 = io();
+            
+            socket1.on('connect', () => {
+                log(`Host connected with socket ID: ${socket1.id}`, 'success');
+                
+                // Create room
+                socket1.emit('create-room', { playerName: hostName });
+            });
+            
+            socket1.on('room-created', (data) => {
+                if (data.success) {
+                    currentRoomId = data.roomId;
+                    log(`✅ Room created successfully! Room ID: ${data.roomId}`, 'success');
+                    document.getElementById('room-info').innerHTML = `
+                        <div class="success">
+                            <strong>Room Created!</strong><br>
+                            Room ID: <strong>${data.roomId}</strong><br>
+                            Host: ${hostName}
+                        </div>
+                    `;
+                    document.getElementById('room-code').value = data.roomId;
+                } else {
+                    log(`❌ Failed to create room: ${data.message}`, 'error');
+                }
+            });
+            
+            socket1.on('disconnect', () => {
+                log('Host disconnected', 'error');
+            });
+        }
+        
+        function joinRoom() {
+            const joinName = document.getElementById('join-name').value.trim();
+            const roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+            
+            if (!joinName || !roomCode) {
+                alert('Please enter joiner name and room code');
+                return;
+            }
+            
+            log(`Attempting to join room ${roomCode} as ${joinName}`);
+            
+            // Create second socket for joiner
+            socket2 = io();
+            
+            socket2.on('connect', () => {
+                log(`Joiner connected with socket ID: ${socket2.id}`, 'success');
+                
+                // Join room
+                socket2.emit('join-room', { 
+                    playerName: joinName, 
+                    roomId: roomCode 
+                });
+            });
+            
+            socket2.on('join-room-response', (data) => {
+                if (data.success) {
+                    log(`✅ Successfully joined room ${roomCode}!`, 'success');
+                    document.getElementById('join-status').innerHTML = `
+                        <div class="success">
+                            <strong>Joined Successfully!</strong><br>
+                            Room ID: ${roomCode}<br>
+                            Player: ${joinName}
+                        </div>
+                    `;
+                } else {
+                    log(`❌ Failed to join room: ${data.message}`, 'error');
+                    document.getElementById('join-status').innerHTML = `
+                        <div class="error">
+                            <strong>Join Failed!</strong><br>
+                            Error: ${data.message}
+                        </div>
+                    `;
+                }
+            });
+            
+            socket2.on('disconnect', () => {
+                log('Joiner disconnected', 'error');
+            });
+        }
+        
+        function checkRooms() {
+            log('Checking available rooms...');
+            
+            const testSocket = io();
+            testSocket.on('connect', () => {
+                // Send a test join request with invalid room to get room list
+                testSocket.emit('join-room', { 
+                    playerName: 'TestUser', 
+                    roomId: 'INVALID' 
+                });
+            });
+            
+            testSocket.on('join-room-response', (data) => {
+                if (!data.success && data.message.includes('Available rooms:')) {
+                    const roomsText = data.message.split('Available rooms: ')[1];
+                    log(`Available rooms: ${roomsText}`);
+                    document.getElementById('rooms-list').innerHTML = `
+                        <div>Available rooms: <strong>${roomsText}</strong></div>
+                    `;
+                }
+                testSocket.disconnect();
+            });
+        }
+        
+        // Auto-connect on page load
+        window.addEventListener('load', function() {
+            log('Test page loaded. Ready to test join functionality.');
+        });
+    </script>
+</body>
+</html>

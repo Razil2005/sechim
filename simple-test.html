@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Socket.IO Test</title>
+</head>
+<body>
+    <h1>Socket.IO Connection Test</h1>
+    <div id="status">Testing...</div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        
+        console.log('Socket.IO available:', typeof io);
+        statusDiv.innerHTML += '<br>Socket.IO available: ' + (typeof io !== 'undefined' ? 'YES' : 'NO');
+        
+        if (typeof io !== 'undefined') {
+            try {
+                const socket = io();
+                statusDiv.innerHTML += '<br>Socket created successfully';
+                
+                socket.on('connect', () => {
+                    console.log('Connected!');
+                    statusDiv.innerHTML += '<br>✓ Connected to server with ID: ' + socket.id;
+                });
+                
+                socket.on('connect_error', (error) => {
+                    console.error('Connection error:', error);
+                    statusDiv.innerHTML += '<br>✗ Connection error: ' + error.message;
+                });
+                
+                socket.on('disconnect', () => {
+                    console.log('Disconnected');
+                    statusDiv.innerHTML += '<br>Disconnected from server';
+                });
+                
+            } catch (error) {
+                console.error('Error creating socket:', error);
+                statusDiv.innerHTML += '<br>✗ Error creating socket: ' + error.message;
+            }
+        } else {
+            statusDiv.innerHTML += '<br>✗ Socket.IO library not loaded';
+        }
+    </script>
+</body>
+</html>
