@@ -614,25 +614,126 @@ header p {
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {
-        padding: 15px;
+        padding: 10px;
+    }
+    
+    .section {
+        padding: 20px;
+        margin-bottom: 20px;
     }
     
     header h1 {
         font-size: 2rem;
     }
     
+    header p {
+        font-size: 1rem;
+    }
+    
+    /* Mode Selection Mobile */
     .mode-buttons {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
     }
     
     .mode-btn {
-        min-width: 200px;
+        min-width: 280px;
+        width: 100%;
+        max-width: 320px;
+        padding: 25px 20px;
     }
     
-    .category-grid {
+    .mode-icon {
+        font-size: 2.5rem;
+    }
+    
+    .mode-btn h3 {
+        font-size: 1.3rem;
+    }
+    
+    /* Online Setup Mobile */
+    .online-options {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .online-card {
+        min-width: unset;
+        width: 100%;
+        padding: 25px 20px;
+    }
+    
+    .online-card h3 {
+        font-size: 1.3rem;
+    }
+    
+    .online-card input {
+        padding: 15px 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Lobby Mobile */
+    .lobby-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .room-info {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px 10px;
+    }
+    
+    #room-code-display {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+    
+    #players-container {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .player-card {
+        padding: 12px;
+    }
+    
+    .player-name {
+        font-size: 1rem;
+    }
+    
+    /* Category Selection Mobile */
+    .category-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 15px;
+    }
+    
+    .category-card {
+        padding: 20px 15px;
+    }
+    
+    .category-icon {
+        font-size: 2rem;
+    }
+    
+    .category-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    /* Game Screen Mobile */
+    .game-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .game-info {
+        flex-direction: column;
+        gap: 10px;
+        font-size: 1rem;
     }
     
     .options-container {
@@ -640,21 +741,175 @@ header p {
         gap: 20px;
     }
     
-    .vs-text {
-        transform: rotate(90deg);
+    .option-card {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+        padding: 15px;
     }
-      .option-image {
+    
+    .option-image {
         width: 150px;
         height: 150px;
-        object-fit: contain;
-        object-position: center;
-        background-color: #f8f9fa;
+        margin: 0 auto 15px;
     }
-      .winner-image {
-        width: 200px;
-        height: 200px;
-        object-fit: contain;
-        object-position: center;
-        background-color: #f8f9fa;
+    
+    .option-name {
+        font-size: 1.2rem;
+    }
+    
+    .vs-text {
+        transform: rotate(90deg);
+        font-size: 1.5rem;
+    }
+    
+    /* Multiplayer Controls Mobile */
+    .multiplayer-controls {
+        margin-top: 20px;
+    }
+    
+    .vote-btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .btn-primary {
+        padding: 15px 25px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    /* Online Voting Info Mobile */
+    .online-voting-info {
+        padding: 12px 10px;
+    }
+    
+    .multiplayer-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    #vote-timer {
+        font-size: 1.1rem;
+        padding: 8px;
+    }
+    
+    .vote-count {
+        font-size: 1rem;
+    }
+    
+    /* Winner Screen Mobile */
+    .winner-container h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    
+    .winner-card {
+        padding: 25px 20px;
+        margin: 20px 0;
+    }
+    
+    .winner-image {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .winner-name {
+        font-size: 1.5rem;
+    }
+    
+    /* Navigation Mobile */
+    .back-btn {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .online-status {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    /* Touch-friendly improvements */
+    .mode-btn,
+    .category-card,
+    .option-card,
+    .vote-btn,
+    .btn-primary,
+    .btn-secondary {
+        min-height: 44px; /* iOS touch target recommendation */
+    }
+    
+    /* Eliminate state overlays mobile */
+    .option-card.eliminated::after {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+    
+    .option-card.voting.winner::after {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    
+    .option-card.voting.loser::after {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .container {
+        padding: 8px;
+    }
+    
+    .section {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .mode-btn {
+        min-width: unset;
+        padding: 20px 15px;
+    }
+    
+    .online-card {
+        padding: 20px 15px;
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .category-card {
+        padding: 15px 10px;
+    }
+    
+    .option-image {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .winner-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .room-info {
+        padding: 12px 8px;
+    }
+    
+    #room-code-display {
+        font-size: 1rem;
     }
 }
