@@ -1,6 +1,6 @@
 // Game data for all categories
 const gameData = {    friends: [
-        { name: 'Aslan', image: 'images/friends/aslan.jpeg' },
+        { name: 'Aslan', image: 'images/friends/aslan2.jpg' },
         { name: 'Ayan', image: 'images/friends/ayan.jpeg' },
         { name: 'Cosqun', image: 'images/friends/cosqun.jpeg' },
         { name: 'Fexriyye', image: 'images/friends/fexriye.jpeg' },
@@ -16,16 +16,16 @@ const gameData = {    friends: [
         { name: 'Tebriz', image: 'images/friends/tebriz.jpeg' },
         { name: 'Zulfiyye', image: 'images/friends/zulfiye.jpeg' },
         { name: 'Seyfi', image: 'images/friends/seyfi.jpeg' },
-        { name: 'Emin', image: 'images/friends/emin.jpeg' },
-        { name: 'Farid', image: 'images/friends/farid.jpeg' },
-        { name: 'Gunel', image: 'images/friends/gunel.jpeg' },
-        { name: 'Huseyn', image: 'images/friends/huseyn.jpeg' },
-        { name: 'Leyla', image: 'images/friends/leyla.jpeg' },
-        { name: 'Murat', image: 'images/friends/murat.jpeg' },
-        { name: 'Narmin', image: 'images/friends/narmin.jpeg' },
-        { name: 'Orhan', image: 'images/friends/orhan.jpeg' },
-        { name: 'Perviz', image: 'images/friends/perviz.jpeg' },
-        { name: 'Zaur', image: 'images/friends/zaur.jpeg' }
+        { name: 'Abbas', image: 'images/friends/abbas.jpg' },
+        { name: 'Ayaz', image: 'images/friends/ayaz.jpg' },
+        { name: 'Diana', image: 'images/friends/diana.jpg' },
+        { name: 'Huseyn', image: 'images/friends/huseyn.jpg' },
+        { name: 'Elnare', image: 'images/friends/elnare.jpg' },
+        { name: 'Fidan', image: 'images/friends/fidan2.jpg' },
+        { name: 'Isa', image: 'images/friends/isa.jpg' },        { name: 'Islam', image: 'images/friends/islam.jpg' },
+        { name: 'Kamran', image: 'images/friends/kamran2.jpg' },
+        { name: 'Prabesh', image: 'images/friends/zaur.jpg' },
+        { name: 'Sebuhi', image: 'images/friends/sebuhi.jpg' }
     ],    teachers: [
         { name: 'Davud', image: 'images/teachers/davud.jpeg' },
         { name: 'Efsane', image: 'images/teachers/efsane.jpeg' },
