@@ -87,9 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize the app
-    initializeApp();
-
-    // Mode selection handlers
+    initializeApp();    // Mode selection handlers
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             selectedMode = this.dataset.mode;
@@ -98,22 +96,21 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 showCategorySelection();
             }
-            // Save state
-            saveState({ mode: selectedMode, category: selectedCategory });
         });
-    });    // Category selection handlers
+    });
+
+    // Category selection handlers
     document.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('click', function() {
             selectedCategory = this.dataset.category;
             if (selectedMode === 'online') {
                 // Online mode category selection is handled in online-game.js
                 return;
-            }
-            startGame();
-            // Save state
-            saveState({ mode: selectedMode, category: selectedCategory });
+            }            startGame();
         });
-    });    // Online setup handlers
+    });
+
+    // Online setup handlers
     document.getElementById('create-room-btn').addEventListener('click', function() {
         console.log('Create room button clicked');
         const playerName = document.getElementById('host-name').value.trim();
@@ -204,10 +201,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
             return;
         }
-        
-        console.log('Creating room with player name:', playerName);
+          console.log('Creating room with player name:', playerName);
         onlineGame.createRoom(playerName);
-    });    document.getElementById('join-room-btn').addEventListener('click', function() {
+    });
+
+    document.getElementById('join-room-btn').addEventListener('click', function() {
         const playerName = document.getElementById('join-name').value.trim();
         const roomCode = document.getElementById('room-code').value.trim();
         
@@ -293,10 +291,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
             return;
         }
-        
-        console.log('Joining room with player name:', playerName, 'room code:', roomCode);
+          console.log('Joining room with player name:', playerName, 'room code:', roomCode);
         onlineGame.joinRoom(playerName, roomCode);
-    });// Online lobby handlers
+    });
+
+    // Online lobby handlers
     document.getElementById('copy-room-code').addEventListener('click', function() {
         if (typeof onlineGame === 'undefined') {
             console.error('OnlineGame not initialized');
@@ -309,9 +308,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof onlineGame === 'undefined') {
             console.error('OnlineGame not initialized');
             return;
-        }
-        onlineGame.startGame();
-    });// Multiplayer voting handlers
+        }        onlineGame.startGame();
+    });
+
+    // Multiplayer voting handlers
     document.querySelectorAll('.vote-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const option = parseInt(this.dataset.option);
@@ -322,7 +322,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // End voting button
     document.getElementById('end-voting').addEventListener('click', function() {
         game.endVotingManually();
-    });    // Play again button
+    });
+
+    // Play again button
     document.getElementById('play-again').addEventListener('click', function() {
         // Check if we're in an online game
         if (typeof onlineGame !== 'undefined' && onlineGame && onlineGame.connected && onlineGame.roomId) {
@@ -336,12 +338,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // For offline games, go back to home
             resetToHome();
         }
-    });
-
-    // Back button
+    });    // Back button
     backBtn.addEventListener('click', function() {
         goBack();
-    });    // Show category selection
+    });
+
+    // Show category selection
     function showCategorySelection() {
         modeSelection.classList.add('hidden');
         onlineSetup.classList.add('hidden');
@@ -393,10 +395,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Save state
         saveState({
             currentScreen: 'game-screen',
-            mode: selectedMode,
-            category: selectedCategory
+            mode: selectedMode,            category: selectedCategory
         });
-    }// Go back to previous screen
+    }
+
+    // Go back to previous screen
     function goBack() {
         if (!gameScreen.classList.contains('hidden')) {
             // From game screen to category selection
@@ -423,10 +426,12 @@ document.addEventListener('DOMContentLoaded', function() {
             backBtn.classList.add('hidden');
             selectedMode = null;
         } else if (!winnerScreen.classList.contains('hidden')) {
-            // From winner screen to home
-            resetToHome();
+            // From winner screen to home            resetToHome();
         }
-    }// Reset to home screen    function resetToHome() {
+    }
+
+    // Reset to home screen
+    function resetToHome() {
         // Hide all screens
         categorySelection.classList.add('hidden');
         gameScreen.classList.add('hidden');
