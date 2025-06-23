@@ -344,6 +344,9 @@ io.on('connection', (socket) => {
             // Get detailed voting information
             const votersByOption = room.getVotersByOption();
             
+            console.log(`${room.players.get(socket.id).name} voted for option ${data.option}`);
+            console.log('Voters:', votersByOption);
+            
             io.to(data.roomId).emit('vote-cast', {
                 votes: room.votes,
                 voter: room.players.get(socket.id).name,

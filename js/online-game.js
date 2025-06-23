@@ -121,8 +121,9 @@ class OnlineGameManager {    constructor() {
 
         // Vote cast        // Vote cast
         this.socket.on('vote-cast', (data) => {
-            console.log('Vote received:', data.voter, 'Voters:', data.votersByOption);
+            console.log('Vote received from:', data.voter);
             this.updateVoteDisplay(data.votes, data.votersByOption);
+            
             // Show notification of who voted
             if (data.voter && data.voter !== this.playerName) {
                 this.showNotification(`${data.voter} voted!`, 'vote');
@@ -305,12 +306,13 @@ class OnlineGameManager {    constructor() {
         
         this.displayOnlineOptions(currentPair);
         this.updateGameInfo();
-        
-        // Show end voting button only for host
+          // Show end voting button only for host
         if (this.isHost) {
             document.getElementById('end-online-voting').classList.remove('hidden');
+            document.getElementById('host-indicator').classList.remove('hidden');
         } else {
             document.getElementById('end-online-voting').classList.add('hidden');
+            document.getElementById('host-indicator').classList.add('hidden');
         }
     }
 
@@ -343,6 +345,7 @@ class OnlineGameManager {    constructor() {
         
         // Update voter names display
         if (votersByOption) {
+            console.log('Updating voter names:', votersByOption);
             this.updateVoterNames('online-voters1', votersByOption.option1 || []);
             this.updateVoterNames('online-voters2', votersByOption.option2 || []);
         } else {
@@ -640,7 +643,7 @@ function    updateVoterNames(containerId, voterNames) {
         
         // Add voter tags for each voter (only if we have voters)
         if (voterNames && voterNames.length > 0) {
-            console.log(`Adding ${voterNames.length} voters to ${containerId}:`, voterNames);
+            console.log(`Adding ${voterNames.length} voters to ${containerId}: ${voterNames.join(', ')}`);
             voterNames.forEach(voterName => {
                 const voterTag = document.createElement('span');
                 voterTag.className = 'voter-tag';
@@ -653,6 +656,8 @@ function    updateVoterNames(containerId, voterNames) {
                 
                 container.appendChild(voterTag);
             });
+        } else {
+            console.log(`No voters to display for ${containerId}`);
         }
         // If no voters, container remains empty (CSS will show "No votes yet")
     }

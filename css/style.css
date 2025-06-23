@@ -241,7 +241,10 @@ header p {
 
 .multiplayer-controls {
     text-align: center;
-    margin-top: 30px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .btn-primary {
@@ -258,6 +261,50 @@ header p {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Enhanced End Voting Button Styling */
+#end-online-voting {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 15px 0;
+}
+
+#end-online-voting:hover {
+    background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
+    transform: translateY(-2px);
+}
+
+#end-online-voting:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+}
+
+#end-online-voting.hidden {
+    display: none;
+}
+
+.host-indicator {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
 /* Winner Screen */

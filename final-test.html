@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Names Test</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .options-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+        }
+        .option-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            min-width: 250px;
+            margin: 10px;
+            backdrop-filter: blur(5px);
+        }
+        .vs-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .voter-names {
+            margin: 15px 0;
+            min-height: 40px;
+            font-size: 0.9rem;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        .voter-names:empty::before {
+            content: "No votes yet";
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+        .voter-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(79, 172, 254, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .voter-tag.current-player {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 172, 254, 0.6);
+        }
+        .end-vote-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+        .end-vote-btn:hover {
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
+        }
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            backdrop-filter: blur(5px);
+        }
+        .status {
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        .connected { background: rgba(40, 167, 69, 0.8); }
+        .disconnected { background: rgba(220, 53, 69, 0.8); }
+        input {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            margin: 5px;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        h1 { text-align: center; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        h2 { text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+    <h1>🗳️ Voter Names & End Vote Test</h1>
+    
+    <div class="container">
+        <h2>Connection & Setup</h2>
+        <div id="status" class="status disconnected">Disconnected</div>
+        <div class="controls">
+            <input type="text" id="playerName" placeholder="Enter your name" value="TestPlayer">
+            <input type="text" id="roomId" placeholder="Room ID" value="test123">
+            <button onclick="connect()">Connect</button>
+            <button onclick="createRoom()">Create Room</button>
+            <button onclick="joinRoom()">Join Room</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>Game Controls</h2>
+        <div class="controls">
+            <button onclick="startGame()">Start Game</button>
+            <button onclick="selectCategory()">Select Category</button>
+            <button class="end-vote-btn" onclick="endVoting()">🛑 End Voting (Host Only)</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>Live Voting Test</h2>
+        <div class="options-container">
+            <div class="option-card">
+                <div class="voter-names" id="test-voters1"></div>
+                <h3>🦁 Lion</h3>
+                <button onclick="vote(1)">Vote Option 1</button>
+                <p>Votes: <span id="votes1">0</span></p>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="option-card">
+                <div class="voter-names" id="test-voters2"></div>
+                <h3>🐅 Tiger</h3>
+                <button onclick="vote(2)">Vote Option 2</button>
+                <p>Votes: <span id="votes2">0</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>Debug Log</h2>
+        <div class="log" id="debug-log"></div>
+        <div class="controls">
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let playerName = '';
+        let roomId = '';
+        let isHost = false;
+        let logMessages = [];
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logMessages.push(`${timestamp}: ${message}`);
+            document.getElementById('debug-log').textContent = logMessages.join('\n');
+            document.getElementById('debug-log').scrollTop = document.getElementById('debug-log').scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            logMessages = [];
+            document.getElementById('debug-log').textContent = '';
+        }
+        
+        function updateStatus(connected) {
+            const statusEl = document.getElementById('status');
+            if (connected) {
+                statusEl.textContent = 'Connected to Server';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'status disconnected';
+            }
+        }
+        
+        function connect() {
+            playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('Please enter a player name');
+                return;
+            }
+            
+            if (socket) socket.disconnect();
+            
+            log('Connecting to server...');
+            socket = io();
+            
+            socket.on('connect', () => {
+                log(`Connected with ID: ${socket.id}`);
+                updateStatus(true);
+            });
+            
+            socket.on('disconnect', () => {
+                log('Disconnected from server');
+                updateStatus(false);
+            });
+            
+            // Game events
+            socket.on('room-created', (data) => {
+                log('Room created successfully');
+                isHost = true;
+            });
+            
+            socket.on('player-joined', (data) => {
+                log(`Player joined: ${JSON.stringify(data)}`);
+            });
+            
+            socket.on('game-started', (data) => {
+                log('Game started');
+            });
+            
+            socket.on('category-selected', (data) => {
+                log('Category selected, game ready for voting');
+            });
+            
+            socket.on('vote-cast', (data) => {
+                log(`Vote cast - Voter: ${data.voter}, Votes: ${JSON.stringify(data.votes)}`);
+                log(`Voters by option: ${JSON.stringify(data.votersByOption)}`);
+                updateVoteDisplay(data.votes, data.votersByOption);
+            });
+            
+            socket.on('voting-ended', (data) => {
+                log(`Voting ended: ${JSON.stringify(data.result)}`);
+            });
+            
+            socket.on('next-round', (data) => {
+                log('Next round started');
+                // Clear voter names
+                updateVoterNames('test-voters1', []);
+                updateVoterNames('test-voters2', []);
+            });
+            
+            socket.on('error', (error) => {
+                log(`Error: ${JSON.stringify(error)}`);
+            });
+        }
+        
+        function createRoom() {
+            roomId = document.getElementById('roomId').value.trim();
+            if (!roomId || !socket) {
+                alert('Please connect and enter room ID');
+                return;
+            }
+            
+            log(`Creating room: ${roomId}`);
+            socket.emit('create-room', { playerName: playerName, roomId: roomId });
+        }
+        
+        function joinRoom() {
+            roomId = document.getElementById('roomId').value.trim();
+            if (!roomId || !socket) {
+                alert('Please connect and enter room ID');
+                return;
+            }
+            
+            log(`Joining room: ${roomId}`);
+            socket.emit('join-room', { playerName: playerName, roomId: roomId });
+        }
+        
+        function startGame() {
+            if (!socket || !roomId) {
+                alert('Please create/join a room first');
+                return;
+            }
+            
+            log('Starting game...');
+            socket.emit('start-game', { roomId: roomId });
+        }
+        
+        function selectCategory() {
+            if (!socket || !roomId) {
+                alert('Please create/join a room first');
+                return;
+            }
+            
+            log('Selecting category: animals');
+            socket.emit('select-category', { roomId: roomId, category: 'animals' });
+        }
+        
+        function vote(option) {
+            if (!socket || !roomId) {
+                alert('Please create/join a room first');
+                return;
+            }
+            
+            log(`Voting for option ${option}`);
+            socket.emit('cast-vote', { roomId: roomId, option: option });
+        }
+        
+        function endVoting() {
+            if (!socket || !roomId) {
+                alert('Please create/join a room first');
+                return;
+            }
+            
+            if (!isHost) {
+                alert('Only the host can end voting');
+                return;
+            }
+            
+            log('Ending voting...');
+            socket.emit('end-voting', { roomId: roomId });
+        }
+        
+        function updateVoteDisplay(votes, votersByOption) {
+            document.getElementById('votes1').textContent = votes.option1;
+            document.getElementById('votes2').textContent = votes.option2;
+            
+            if (votersByOption) {
+                updateVoterNames('test-voters1', votersByOption.option1 || []);
+                updateVoterNames('test-voters2', votersByOption.option2 || []);
+            }
+        }
+        
+        function updateVoterNames(containerId, voterNames) {
+            log(`Updating ${containerId} with voters: ${JSON.stringify(voterNames)}`);
+            
+            const container = document.getElementById(containerId);
+            if (!container) {
+                log(`ERROR: Container ${containerId} not found!`);
+                return;
+            }
+            
+            // Clear existing voter tags
+            container.innerHTML = '';
+            
+            // Add voter tags for each voter
+            if (voterNames && voterNames.length > 0) {
+                voterNames.forEach(voterName => {
+                    const voterTag = document.createElement('span');
+                    voterTag.className = 'voter-tag';
+                    voterTag.textContent = voterName;
+                    
+                    // Highlight current player's vote
+                    if (voterName === playerName) {
+                        voterTag.classList.add('current-player');
+                    }
+                    
+                    container.appendChild(voterTag);
+                });
+                log(`Successfully added ${voterNames.length} voter tags to ${containerId}`);
+            } else {
+                log(`No voters for ${containerId}`);
+            }
+        }
+    </script>
+</body>
+</html>
