@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Display Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .options-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+        }
+        .option-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            min-width: 200px;
+            margin: 10px;
+        }
+        .vs-text {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #666;
+            margin: 0 20px;
+        }
+        /* Same voter styles as main app */
+        .voter-names {
+            margin: 10px 0;
+            min-height: 30px;
+            font-size: 0.85rem;
+            color: #333;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .voter-names:empty::before {
+            content: "No votes yet";
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            font-size: 0.75rem;
+        }
+        .voter-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(79, 172, 254, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .voter-tag.current-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗳️ Voter Display Functionality Test</h1>
+    
+    <div class="test-container">
+        <h2>Visual Test</h2>
+        <p>This simulates how voter names should appear above each option in the game.</p>
+        
+        <div class="options-container">
+            <div class="option-card">
+                <div class="voter-names" id="demo-voters1"></div>
+                <h3>🦁 Lion</h3>
+                <p>Option 1</p>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="option-card">
+                <div class="voter-names" id="demo-voters2"></div>
+                <h3>🐅 Tiger</h3>
+                <p>Option 2</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="simulateVotes()">Simulate Votes</button>
+            <button onclick="clearVotes()">Clear Votes</button>
+            <button onclick="addMoreVotes()">Add More Votes</button>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Function Test</h2>
+        <p>Test the voter name display functions directly.</p>
+        <div class="controls">
+            <button onclick="testFunction()">Test updateVoterNames Function</button>
+            <button onclick="testContainers()">Check Containers in Main App</button>
+        </div>
+        <div class="log" id="function-log"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Instructions</h2>
+        <p><strong>To test in the main application:</strong></p>
+        <ol>
+            <li>Open the main app: <a href="/" target="_blank">http://localhost:3000</a></li>
+            <li>Select "Online Multiplayer"</li>
+            <li>Create a room and start a game</li>
+            <li>Open another browser tab/window and join the same room</li>
+            <li>Vote on options and watch for voter names to appear above each option</li>
+        </ol>
+    </div>
+
+    <script>
+        let logMessages = [];
+        
+        function log(message) {
+            logMessages.push(new Date().toISOString() + ': ' + message);
+            const logEl = document.getElementById('function-log');
+            if (logEl) {
+                logEl.textContent = logMessages.join('\n');
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            console.log(message);
+        }
+        
+        function updateVoterNames(containerId, voterNames) {
+            log(`Updating voter names for ${containerId}: ${JSON.stringify(voterNames)}`);
+            
+            const container = document.getElementById(containerId);
+            if (!container) {
+                log(`ERROR: Container ${containerId} not found!`);
+                return;
+            }
+            
+            // Clear existing voter tags
+            container.innerHTML = '';
+            
+            // Add voter tags for each voter
+            if (voterNames && voterNames.length > 0) {
+                voterNames.forEach(voterName => {
+                    const voterTag = document.createElement('span');
+                    voterTag.className = 'voter-tag';
+                    voterTag.textContent = voterName;
+                    container.appendChild(voterTag);
+                });
+                log(`Successfully added ${voterNames.length} voter tags to ${containerId}`);
+            } else {
+                log(`No voters to display for ${containerId}`);
+            }
+        }
+        
+        function simulateVotes() {
+            updateVoterNames('demo-voters1', ['Alice', 'Bob']);
+            updateVoterNames('demo-voters2', ['Charlie']);
+            log('Simulated initial votes');
+        }
+        
+        function addMoreVotes() {
+            updateVoterNames('demo-voters1', ['Alice', 'Bob', 'David']);
+            updateVoterNames('demo-voters2', ['Charlie', 'Eve', 'Frank']);
+            log('Added more votes');
+        }
+        
+        function clearVotes() {
+            updateVoterNames('demo-voters1', []);
+            updateVoterNames('demo-voters2', []);
+            log('Cleared all votes');
+        }
+        
+        function testFunction() {
+            log('Testing updateVoterNames function...');
+            
+            // Test with various scenarios
+            updateVoterNames('demo-voters1', ['TestUser1']);
+            updateVoterNames('demo-voters2', ['TestUser2', 'TestUser3']);
+            
+            setTimeout(() => {
+                updateVoterNames('demo-voters1', []);
+                updateVoterNames('demo-voters2', ['OnlyUser']);
+            }, 2000);
+            
+            log('Function test completed');
+        }
+        
+        function testContainers() {
+            log('Checking main app containers...');
+            
+            // Try to access main app window
+            try {
+                const mainWindow = window.open('/', '_blank');
+                setTimeout(() => {
+                    try {
+                        const container1 = mainWindow.document.getElementById('online-voters1');
+                        const container2 = mainWindow.document.getElementById('online-voters2');
+                        
+                        log(`Container online-voters1: ${container1 ? 'FOUND' : 'NOT FOUND'}`);
+                        log(`Container online-voters2: ${container2 ? 'FOUND' : 'NOT FOUND'}`);
+                        
+                        if (container1) {
+                            log(`Container 1 classes: ${container1.className}`);
+                            log(`Container 1 innerHTML: "${container1.innerHTML}"`);
+                        }
+                        
+                        if (container2) {
+                            log(`Container 2 classes: ${container2.className}`);
+                            log(`Container 2 innerHTML: "${container2.innerHTML}"`);
+                        }
+                        
+                    } catch (e) {
+                        log(`Error accessing main app DOM: ${e.message}`);
+                    }
+                }, 3000);
+            } catch (e) {
+                log(`Error opening main app: ${e.message}`);
+            }
+        }
+        
+        // Auto-run initial test
+        window.addEventListener('load', () => {
+            setTimeout(simulateVotes, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Voter Test</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .voter-names {
+            margin: 10px 0;
+            min-height: 30px;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .voter-names:empty::before {
+            content: "No votes yet";
+            color: #999;
+            font-style: italic;
+            font-size: 0.75rem;
+        }
+        .voter-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(79, 172, 254, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .voter-tag.current-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .options {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .option {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Live Voter Test - Connected to Main Server</h1>
+    
+    <div class="container">
+        <h2>Connection Status</h2>
+        <div id="status" class="status disconnected">Disconnected</div>
+        <button onclick="connect()">Connect to Server</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    
+    <div class="container">
+        <h2>Room Setup</h2>
+        <input type="text" id="playerName" placeholder="Player Name" value="TestPlayer">
+        <input type="text" id="roomId" placeholder="Room ID" value="test123">
+        <button onclick="createRoom()">Create Room</button>
+        <button onclick="joinRoom()">Join Room</button>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    
+    <div class="container">
+        <h2>Voting Test</h2>
+        <div class="options">
+            <div class="option">
+                <h3>Option 1</h3>
+                <div class="voter-names" id="live-voters1"></div>
+                <button onclick="vote(1)">Vote Option 1</button>
+                <p>Votes: <span id="live-votes1">0</span></p>
+            </div>
+            <div class="option">
+                <h3>Option 2</h3>
+                <div class="voter-names" id="live-voters2"></div>
+                <button onclick="vote(2)">Vote Option 2</button>
+                <p>Votes: <span id="live-votes2">0</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>Debug Log</h2>
+        <div class="log" id="debug-log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentPlayerName = '';
+        let currentRoomId = '';
+        let logMessages = [];
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logMessages.push(`${timestamp}: ${message}`);
+            document.getElementById('debug-log').textContent = logMessages.join('\n');
+            document.getElementById('debug-log').scrollTop = document.getElementById('debug-log').scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            logMessages = [];
+            document.getElementById('debug-log').textContent = '';
+        }
+        
+        function updateStatus(connected) {
+            const statusEl = document.getElementById('status');
+            if (connected) {
+                statusEl.textContent = 'Connected to Main Server';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'status disconnected';
+            }
+        }
+        
+        function connect() {
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            log('Connecting to main server...');
+            socket = io();
+            
+            socket.on('connect', () => {
+                log('Connected to main server: ' + socket.id);
+                updateStatus(true);
+            });
+            
+            socket.on('disconnect', () => {
+                log('Disconnected from main server');
+                updateStatus(false);
+            });
+            
+            socket.on('vote-cast', (data) => {
+                log('Vote cast event received: ' + JSON.stringify(data));
+                updateVoteDisplay(data.votes, data.votersByOption);
+            });
+            
+            socket.on('room-created', (data) => {
+                log('Room created: ' + JSON.stringify(data));
+            });
+            
+            socket.on('player-joined', (data) => {
+                log('Player joined: ' + JSON.stringify(data));
+            });
+            
+            socket.on('game-started', (data) => {
+                log('Game started: ' + JSON.stringify(data));
+            });
+            
+            socket.on('category-selected', (data) => {
+                log('Category selected: ' + JSON.stringify(data));
+            });
+            
+            socket.on('error', (error) => {
+                log('Error: ' + JSON.stringify(error));
+            });
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+        
+        function createRoom() {
+            currentPlayerName = document.getElementById('playerName').value.trim();
+            currentRoomId = document.getElementById('roomId').value.trim();
+            
+            if (!currentPlayerName || !currentRoomId) {
+                alert('Please enter both player name and room ID');
+                return;
+            }
+            
+            if (!socket || !socket.connected) {
+                alert('Not connected to server');
+                return;
+            }
+            
+            log(`Creating room ${currentRoomId} as ${currentPlayerName}`);
+            socket.emit('create-room', {
+                playerName: currentPlayerName,
+                roomId: currentRoomId
+            });
+        }
+        
+        function joinRoom() {
+            currentPlayerName = document.getElementById('playerName').value.trim();
+            currentRoomId = document.getElementById('roomId').value.trim();
+            
+            if (!currentPlayerName || !currentRoomId) {
+                alert('Please enter both player name and room ID');
+                return;
+            }
+            
+            if (!socket || !socket.connected) {
+                alert('Not connected to server');
+                return;
+            }
+            
+            log(`Joining room ${currentRoomId} as ${currentPlayerName}`);
+            socket.emit('join-room', {
+                playerName: currentPlayerName,
+                roomId: currentRoomId
+            });
+        }
+        
+        function startGame() {
+            if (!socket || !socket.connected || !currentRoomId) {
+                alert('Not connected or no room selected');
+                return;
+            }
+            
+            log('Starting game...');
+            socket.emit('start-game', { roomId: currentRoomId });
+        }
+        
+        function vote(option) {
+            if (!socket || !socket.connected || !currentRoomId) {
+                alert('Not connected or no room selected');
+                return;
+            }
+            
+            log(`Voting for option ${option}`);
+            socket.emit('cast-vote', {
+                roomId: currentRoomId,
+                option: option
+            });
+        }
+        
+        function updateVoteDisplay(votes, votersByOption) {
+            log(`Updating vote display: votes=${JSON.stringify(votes)}, voters=${JSON.stringify(votersByOption)}`);
+            
+            document.getElementById('live-votes1').textContent = votes.option1;
+            document.getElementById('live-votes2').textContent = votes.option2;
+            
+            if (votersByOption) {
+                updateVoterNames('live-voters1', votersByOption.option1 || []);
+                updateVoterNames('live-voters2', votersByOption.option2 || []);
+            }
+        }
+        
+        function updateVoterNames(containerId, voterNames) {
+            log(`Updating voter names for ${containerId}: ${JSON.stringify(voterNames)}`);
+            
+            const container = document.getElementById(containerId);
+            if (!container) {
+                log(`ERROR: Container ${containerId} not found!`);
+                return;
+            }
+            
+            // Clear existing voter tags
+            container.innerHTML = '';
+            
+            // Add voter tags for each voter
+            if (voterNames && voterNames.length > 0) {
+                voterNames.forEach(voterName => {
+                    const voterTag = document.createElement('span');
+                    voterTag.className = 'voter-tag';
+                    voterTag.textContent = voterName;
+                    
+                    // Highlight current player's vote
+                    if (voterName === currentPlayerName) {
+                        voterTag.classList.add('current-player');
+                    }
+                    
+                    container.appendChild(voterTag);
+                });
+                log(`Successfully added ${voterNames.length} voter tags to ${containerId}`);
+            } else {
+                log(`No voters to display for ${containerId}`);
+            }
+        }
+        
+        // Auto-connect on page load
+        window.addEventListener('load', () => {
+            setTimeout(connect, 1000);
+        });
+    </script>
+</body>
+</html>

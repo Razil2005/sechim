@@ -121,6 +121,7 @@ class OnlineGameManager {    constructor() {
 
         // Vote cast        // Vote cast
         this.socket.on('vote-cast', (data) => {
+            console.log('Vote received:', data.voter, 'Voters:', data.votersByOption);
             this.updateVoteDisplay(data.votes, data.votersByOption);
             // Show notification of who voted
             if (data.voter && data.voter !== this.playerName) {
@@ -639,6 +640,7 @@ function    updateVoterNames(containerId, voterNames) {
         
         // Add voter tags for each voter (only if we have voters)
         if (voterNames && voterNames.length > 0) {
+            console.log(`Adding ${voterNames.length} voters to ${containerId}:`, voterNames);
             voterNames.forEach(voterName => {
                 const voterTag = document.createElement('span');
                 voterTag.className = 'voter-tag';

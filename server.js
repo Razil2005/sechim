@@ -103,14 +103,13 @@ class OnlineGameRoom {
     }    startVoting() {
         this.votingActive = true;
         this.votes = { option1: 0, option2: 0 };
-        // Don't clear playerVotes here - let it be cleared when starting a new round
-        // this.playerVotes.clear();
+        // Keep existing playerVotes to preserve voter names from previous round results
     }
 
-    startNewRound() {
-        // Clear voter data when starting a new round
+    clearVoterData() {
+        // Only clear voter data when explicitly called (new round starts)
         this.playerVotes.clear();
-        this.votingActive = false;
+        this.votes = { option1: 0, option2: 0 };
     }
 
     getVotersByOption() {
@@ -324,10 +323,8 @@ io.on('connection', (socket) => {
         
         room.category = data.category;
         room.items = room.shuffleArray([...gameData[data.category]]);
-        room.gameState = 'playing';
-          const roundResult = room.startNextRound();
+        room.gameState = 'playing';        const roundResult = room.startNextRound();
         if (!roundResult.isGameFinished) {
-            room.startNewRound(); // Clear any previous voter data
             room.startVoting();
         }
         
@@ -342,9 +339,7 @@ io.on('connection', (socket) => {
         if (!room || !room.votingActive) {
             socket.emit('error', { message: 'Voting not active' });
             return;
-        }
-        
-        const voted = room.castVote(socket.id, data.option);
+        }        const voted = room.castVote(socket.id, data.option);
         if (voted) {
             // Get detailed voting information
             const votersByOption = room.getVotersByOption();
@@ -388,7 +383,8 @@ io.on('connection', (socket) => {
                     winner: nextRound.winner,
                     gameInfo: room.getGameInfo()
                 });            } else {
-                room.startNewRound(); // Clear previous voter data
+                // Clear voter data from previous round before starting new round
+                room.clearVoterData();
                 room.startVoting();
                 io.to(data.roomId).emit('next-round', {
                     gameInfo: room.getGameInfo(),
