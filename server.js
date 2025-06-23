@@ -70,9 +70,8 @@ class OnlineGameRoom {
             connected: true
         });
         return true;
-    }
-
-    removePlayer(playerId) {
+    }    removePlayer(playerId) {
+        const player = this.players.get(playerId);
         this.players.delete(playerId);
         this.playerVotes.delete(playerId);
         
@@ -81,6 +80,8 @@ class OnlineGameRoom {
             this.hostId = this.players.keys().next().value;
             this.players.get(this.hostId).isHost = true;
         }
+        
+        return player; // Return player info for notifications
     }
 
     castVote(playerId, option) {
@@ -405,15 +406,15 @@ io.on('connection', (socket) => {
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        
-        // Remove player from all rooms
+          // Remove player from all rooms
         for (const [roomId, room] of gameRooms.entries()) {
             if (room.players.has(socket.id)) {
-                room.removePlayer(socket.id);
+                const removedPlayer = room.removePlayer(socket.id);
                 
                 // Notify other players
                 socket.to(roomId).emit('player-left', {
                     playerId: socket.id,
+                    playerName: removedPlayer ? removedPlayer.name : null,
                     gameInfo: room.getGameInfo()
                 });
                 

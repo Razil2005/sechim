@@ -76,8 +76,7 @@ class OnlineGameManager {    constructor() {
                 console.log('Successfully joined room:', this.roomId);
             } else {
                 console.error('Failed to join room:', data.message);
-                alert(`Failed to join room: ${data.message}`);
-            }
+                alert(`Failed to join room: ${data.message}`);            }
         });
 
         // Player joined
@@ -85,18 +84,25 @@ class OnlineGameManager {    constructor() {
             this.gameInfo = data.gameInfo;
             this.updateLobby();
             this.updateHostControls(); // Ensure host controls are updated
-            this.showNotification(`${data.player.name} joined the game!`);
-        });
-
-        // Player left
+            this.showNotification(`${data.player.name} joined the game!`, 'join');
+        });// Player left
         this.socket.on('player-left', (data) => {
             this.gameInfo = data.gameInfo;
-            this.updateLobby();
-            // Update host status if needed
+            this.updateLobby();            // Update host status if needed
             const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
             if (currentPlayer) {
+                const wasHost = this.isHost;
                 this.isHost = currentPlayer.isHost;
                 this.updateHostControls();
+                
+                // Show notification if this player became the new host
+                if (!wasHost && this.isHost) {
+                    this.showNotification('You are now the host!', 'info');                }
+            }
+            
+            // Show notification when player leaves
+            if (data.playerName) {
+                this.showNotification(`${data.playerName} left the game`, 'leave');
             }
         });
 
@@ -110,23 +116,27 @@ class OnlineGameManager {    constructor() {
         this.socket.on('category-selected', (data) => {
             this.gameInfo = data.gameInfo;
             this.startOnlineGameplay(data.currentPair);
+            this.showNotification('Game started! Time to vote!', 'success');
         });
 
-        // Vote cast
+        // Vote cast        // Vote cast
         this.socket.on('vote-cast', (data) => {
             this.updateVoteDisplay(data.votes);
+            // Show notification of who voted
+            if (data.voter && data.voter !== this.playerName) {
+                this.showNotification(`${data.voter} voted!`, 'vote');
+            }
         });
 
         // Voting ended
         this.socket.on('voting-ended', (data) => {
             this.showVotingResult(data.result);
-        });
-
-        // Next round
+        });        // Next round
         this.socket.on('next-round', (data) => {
             this.gameInfo = data.gameInfo;
             this.startNextOnlineRound(data.currentPair);
-        });        // Game finished
+            this.showNotification('Next round started!', 'info');
+        });// Game finished
         this.socket.on('game-finished', (data) => {
             this.showOnlineWinner(data.winner);
         });
@@ -135,7 +145,7 @@ class OnlineGameManager {    constructor() {
         this.socket.on('game-restarted', (data) => {
             this.gameInfo = data.gameInfo;
             this.showLobby();
-            this.showNotification('Game restarted! Ready for another round!');
+            this.showNotification('Game restarted! Ready for another round!', 'success');
         });
 
         // Error handling
@@ -399,27 +409,69 @@ class OnlineGameManager {    constructor() {
             statusElement.textContent = '🔴 Disconnected';
             statusElement.classList.add('disconnected');
         }
-    }
-
-    showNotification(message) {
-        // Create a simple notification system
+    }    showNotification(message, type = 'info') {
+        // Create a notification with different types and colors
         const notification = document.createElement('div');
         notification.className = 'notification';
-        notification.textContent = message;
+        
+        // Define colors and icons for different notification types
+        let bgColor, icon;
+        switch (type) {
+            case 'join':
+                bgColor = 'rgba(46, 204, 113, 0.9)'; // Green
+                icon = '👋';
+                break;
+            case 'leave':
+                bgColor = 'rgba(231, 76, 60, 0.9)'; // Red
+                icon = '👋';
+                break;
+            case 'vote':
+                bgColor = 'rgba(52, 152, 219, 0.9)'; // Blue
+                icon = '🗳️';
+                break;
+            case 'success':
+                bgColor = 'rgba(46, 204, 113, 0.9)'; // Green
+                icon = '✅';
+                break;
+            case 'info':
+            default:
+                bgColor = 'rgba(102, 126, 234, 0.9)'; // Purple
+                icon = 'ℹ️';
+                break;
+        }
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 16px;">${icon}</span>
+                <span>${message}</span>
+            </div>
+        `;
+        
         notification.style.cssText = `
             position: fixed;
             top: 80px;
             right: 20px;
-            background: rgba(46, 204, 113, 0.9);
+            background: ${bgColor};
             color: white;
             padding: 15px 20px;
             border-radius: 10px;
             z-index: 1000;
             backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 300px;
             animation: slideIn 0.3s ease-out;
         `;
         
         document.body.appendChild(notification);
+        
+        // Stack notifications if multiple exist
+        const existingNotifications = document.querySelectorAll('.notification');
+        if (existingNotifications.length > 1) {
+            notification.style.top = `${80 + (existingNotifications.length - 1) * 70}px`;
+        }
         
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease-in';
@@ -431,7 +483,7 @@ class OnlineGameManager {    constructor() {
 
     copyRoomCode() {
         navigator.clipboard.writeText(this.roomId).then(() => {
-            this.showNotification('Room code copied to clipboard!');
+            this.showNotification('Room code copied to clipboard!', 'success');
         });
     }
     
