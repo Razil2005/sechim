@@ -470,8 +470,8 @@ header p {
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: #667eea;
+    border: 2px solid #667eea;
     border-radius: 20px;
     padding: 8px 16px;
     color: white;
@@ -481,7 +481,8 @@ header p {
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #5a6fd8;
+    border-color: #5a6fd8;
     transform: translateY(-2px);
 }
 
