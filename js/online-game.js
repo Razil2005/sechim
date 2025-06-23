@@ -198,9 +198,7 @@ class OnlineGameManager {    constructor() {
         if (this.isHost) {
             this.socket.emit('restart-game', { roomId: this.roomId });
         }
-    }
-
-    // UI Management Methods
+    }    // UI Management Methods
     showLobby() {
         document.getElementById('online-setup').classList.add('hidden');
         document.getElementById('online-lobby').classList.remove('hidden');
@@ -211,6 +209,9 @@ class OnlineGameManager {    constructor() {
         
         this.updateLobby();
         this.updateHostControls();
+        
+        // Save state for page refresh persistence
+        this.saveOnlineState('online-lobby');
     }
 
     updateLobby() {
@@ -433,8 +434,31 @@ class OnlineGameManager {    constructor() {
             this.showNotification('Room code copied to clipboard!');
         });
     }
+    
+    saveOnlineState(currentScreen) {
+        try {
+            const state = {
+                currentScreen: currentScreen,
+                mode: 'online',
+                category: null,
+                roomId: this.roomId,
+                playerName: this.playerName,
+                isHost: this.isHost
+            };
+            localStorage.setItem('quizGameState', JSON.stringify(state));
+        } catch (e) {
+            console.log('Could not save online state:', e);
+        }
+    }
 
     disconnect() {
+        // Clear state when disconnecting
+        try {
+            localStorage.removeItem('quizGameState');
+        } catch (e) {
+            console.log('Could not clear state:', e);
+        }
+        
         if (this.socket) {
             this.socket.disconnect();
         }

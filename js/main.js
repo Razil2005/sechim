@@ -6,6 +6,33 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('  - onlineGame instance:', typeof onlineGame, onlineGame);
     console.log('  - window.onlineGame:', typeof window.onlineGame, window.onlineGame);
     
+    // State management functions
+    function saveState(state) {
+        try {
+            localStorage.setItem('quizGameState', JSON.stringify(state));
+        } catch (e) {
+            console.log('Could not save state to localStorage:', e);
+        }
+    }
+    
+    function loadState() {
+        try {
+            const saved = localStorage.getItem('quizGameState');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.log('Could not load state from localStorage:', e);
+            return null;
+        }
+    }
+    
+    function clearState() {
+        try {
+            localStorage.removeItem('quizGameState');
+        } catch (e) {
+            console.log('Could not clear state from localStorage:', e);
+        }
+    }
+    
     // Elements
     const modeSelection = document.getElementById('mode-selection');
     const categorySelection = document.getElementById('category-selection');
@@ -15,10 +42,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const multiPlayerGame = document.getElementById('multi-player-game');
     const onlineSetup = document.getElementById('online-setup');
     const onlineLobby = document.getElementById('online-lobby');
-    const backBtn = document.getElementById('back-btn');
-
-    let selectedMode = null;
+    const backBtn = document.getElementById('back-btn');    let selectedMode = null;
     let selectedCategory = null;
+
+    // Initialize state restoration
+    function initializeApp() {
+        const savedState = loadState();
+        if (savedState) {
+            console.log('Restoring saved state:', savedState);
+            restoreState(savedState);
+        }
+    }
+    
+    function restoreState(state) {
+        selectedMode = state.mode;
+        selectedCategory = state.category;
+        
+        switch (state.currentScreen) {
+            case 'mode-selection':
+                // Already showing mode selection by default
+                break;
+            case 'online-setup':
+                if (state.mode === 'online') {
+                    showOnlineSetup();
+                }
+                break;
+            case 'category-selection':
+                if (state.mode && state.mode !== 'online') {
+                    showCategorySelection();
+                }
+                break;
+            case 'online-lobby':
+                if (state.mode === 'online') {
+                    showOnlineSetup(); // Will need to reconnect
+                }
+                break;
+            case 'game-screen':
+                if (state.mode && state.category) {
+                    showCategorySelection();
+                    // Let user manually restart the game
+                }
+                break;
+        }
+    }
+    
+    // Initialize the app
+    initializeApp();
 
     // Mode selection handlers
     document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -29,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 showCategorySelection();
             }
+            // Save state
+            saveState({ mode: selectedMode, category: selectedCategory });
         });
     });    // Category selection handlers
     document.querySelectorAll('.category-card').forEach(card => {
@@ -39,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             startGame();
+            // Save state
+            saveState({ mode: selectedMode, category: selectedCategory });
         });
     });    // Online setup handlers
     document.getElementById('create-room-btn').addEventListener('click', function() {
@@ -274,6 +347,13 @@ document.addEventListener('DOMContentLoaded', function() {
         onlineSetup.classList.add('hidden');
         categorySelection.classList.remove('hidden');
         backBtn.classList.remove('hidden');
+        
+        // Save state
+        saveState({
+            currentScreen: 'category-selection',
+            mode: selectedMode,
+            category: selectedCategory
+        });
     }
 
     // Show online setup
@@ -282,9 +362,14 @@ document.addEventListener('DOMContentLoaded', function() {
         categorySelection.classList.add('hidden');
         onlineSetup.classList.remove('hidden');
         backBtn.classList.remove('hidden');
-    }
-
-    // Start the game
+        
+        // Save state
+        saveState({
+            currentScreen: 'online-setup',
+            mode: selectedMode,
+            category: selectedCategory
+        });
+    }    // Start the game
     function startGame() {
         categorySelection.classList.add('hidden');
         gameScreen.classList.remove('hidden');
@@ -304,7 +389,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update game title
         const categoryName = selectedCategory.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
         document.getElementById('game-title').textContent = `Choose Your Favorite ${categoryName}`;
-    }    // Go back to previous screen
+        
+        // Save state
+        saveState({
+            currentScreen: 'game-screen',
+            mode: selectedMode,
+            category: selectedCategory
+        });
+    }// Go back to previous screen
     function goBack() {
         if (!gameScreen.classList.contains('hidden')) {
             // From game screen to category selection
@@ -334,8 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // From winner screen to home
             resetToHome();
         }
-    }// Reset to home screen
-    function resetToHome() {
+    }// Reset to home screen    function resetToHome() {
         // Hide all screens
         categorySelection.classList.add('hidden');
         gameScreen.classList.add('hidden');
@@ -353,6 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
         game.reset();
         selectedMode = null;
         selectedCategory = null;
+        
+        // Clear saved state
+        clearState();
         
         // Disconnect from online game if connected
         if (typeof onlineGame !== 'undefined' && onlineGame.connected) {
