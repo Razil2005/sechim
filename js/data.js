@@ -24,7 +24,7 @@ const gameData = {    friends: [
         { name: 'Fidan', image: 'images/friends/fidan2.jpg' },
         { name: 'Isa', image: 'images/friends/isa.jpg' },        { name: 'Islam', image: 'images/friends/islam.jpg' },
         { name: 'Kamran', image: 'images/friends/kamran2.jpg' },
-        { name: 'Prabesh', image: 'images/friends/zaur.jpg' },
+        { name: 'Prabesh', image: 'images/friends/prabesh.jpg' },
         { name: 'Sebuhi', image: 'images/friends/sebuhi.jpg' }
     ],    teachers: [
         { name: 'Davud', image: 'images/teachers/davud.jpeg' },

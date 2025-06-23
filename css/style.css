@@ -171,9 +171,11 @@ header p {
 .option-image {
     width: 200px;
     height: 200px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
     border-radius: 10px;
     margin-bottom: 15px;
+    background-color: #f8f9fa;
 }
 
 .option-name {
@@ -282,10 +284,12 @@ header p {
 .winner-image {
     width: 250px;
     height: 250px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
     border-radius: 15px;
     margin-bottom: 20px;
     border: 5px solid white;
+    background-color: #f8f9fa;
 }
 
 .winner-name {
@@ -638,14 +642,18 @@ header p {
     .vs-text {
         transform: rotate(90deg);
     }
-    
-    .option-image {
+      .option-image {
         width: 150px;
         height: 150px;
+        object-fit: contain;
+        object-position: center;
+        background-color: #f8f9fa;
     }
-    
-    .winner-image {
+      .winner-image {
         width: 200px;
         height: 200px;
+        object-fit: contain;
+        object-position: center;
+        background-color: #f8f9fa;
     }
 }
