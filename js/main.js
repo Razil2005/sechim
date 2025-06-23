@@ -1,14 +1,15 @@
 // Main application logic
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Main.js DOMContentLoaded fired');
-    console.log('  - Socket.IO available:', typeof io !== 'undefined');
-    console.log('  - OnlineGameManager available:', typeof OnlineGameManager !== 'undefined');
+    console.log('  - Socket.IO available:', typeof io !== 'undefined');    console.log('  - OnlineGameManager available:', typeof OnlineGameManager !== 'undefined');
     console.log('  - onlineGame instance:', typeof onlineGame, onlineGame);
     console.log('  - window.onlineGame:', typeof window.onlineGame, window.onlineGame);
     
     // State management functions
     function saveState(state) {
         try {
+            // Add timestamp to track when state was saved
+            state.timestamp = Date.now();
             localStorage.setItem('quizGameState', JSON.stringify(state));
         } catch (e) {
             console.log('Could not save state to localStorage:', e);
@@ -39,18 +40,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameScreen = document.getElementById('game-screen');
     const winnerScreen = document.getElementById('winner-screen');
     const singlePlayerGame = document.getElementById('single-player-game');
-    const multiPlayerGame = document.getElementById('multi-player-game');
-    const onlineSetup = document.getElementById('online-setup');
+    const multiPlayerGame = document.getElementById('multi-player-game');    const onlineSetup = document.getElementById('online-setup');
     const onlineLobby = document.getElementById('online-lobby');
-    const backBtn = document.getElementById('back-btn');    let selectedMode = null;
+    const backBtn = document.getElementById('back-btn');
+    
+    let selectedMode = null;
     let selectedCategory = null;
-
+    
     // Initialize state restoration
     function initializeApp() {
         const savedState = loadState();
-        if (savedState) {
-            console.log('Restoring saved state:', savedState);
+        // Only restore state if it's within the last 30 minutes to avoid stale states
+        if (savedState && savedState.timestamp && (Date.now() - savedState.timestamp) < 30 * 60 * 1000) {
+            console.log('Restoring recent saved state:', savedState);
             restoreState(savedState);
+        } else {
+            // Clear old state and start fresh
+            clearState();
+            console.log('Starting fresh - no recent state to restore');
         }
     }
     
@@ -58,36 +65,31 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedMode = state.mode;
         selectedCategory = state.category;
         
+        // Only restore to active game states, not setup screens
         switch (state.currentScreen) {
             case 'mode-selection':
                 // Already showing mode selection by default
                 break;
-            case 'online-setup':
-                if (state.mode === 'online') {
-                    showOnlineSetup();
-                }
-                break;
-            case 'category-selection':
-                if (state.mode && state.mode !== 'online') {
+            case 'game-screen':
+                if (state.mode && state.category && state.mode !== 'online') {
+                    // Only restore offline games
                     showCategorySelection();
                 }
                 break;
             case 'online-lobby':
-                if (state.mode === 'online') {
-                    showOnlineSetup(); // Will need to reconnect
-                }
+                // For online games, always start fresh to avoid connection issues
                 break;
-            case 'game-screen':
-                if (state.mode && state.category) {
-                    showCategorySelection();
-                    // Let user manually restart the game
-                }
+            case 'online-setup':
+            case 'category-selection':
+            default:
+                // Don't restore these intermediate states
                 break;
         }
     }
+      // Initialize the app
+    initializeApp();
     
-    // Initialize the app
-    initializeApp();    // Mode selection handlers
+    // Mode selection handlers
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             selectedMode = this.dataset.mode;

@@ -106,7 +106,29 @@ class OnlineGameRoom {
         this.votingActive = true;
         this.votes = { option1: 0, option2: 0 };
         this.playerVotes.clear();
-    }    endVoting() {
+    }
+
+    getVotersByOption() {
+        const votersByOption = {
+            option1: [],
+            option2: []
+        };
+        
+        for (const [playerId, option] of this.playerVotes.entries()) {
+            const player = this.players.get(playerId);
+            if (player) {
+                if (option === 1) {
+                    votersByOption.option1.push(player.name);
+                } else if (option === 2) {
+                    votersByOption.option2.push(player.name);
+                }
+            }
+        }
+        
+        return votersByOption;
+    }
+
+    endVoting() {
         this.votingActive = false;
         
         // Determine winner
@@ -308,9 +330,7 @@ io.on('connection', (socket) => {
             gameInfo: room.getGameInfo(),
             currentPair: room.currentPair
         });
-    });
-
-    // Cast vote
+    });    // Cast vote
     socket.on('cast-vote', (data) => {
         const room = gameRooms.get(data.roomId);
         
@@ -321,9 +341,13 @@ io.on('connection', (socket) => {
         
         const voted = room.castVote(socket.id, data.option);
         if (voted) {
+            // Get detailed voting information
+            const votersByOption = room.getVotersByOption();
+            
             io.to(data.roomId).emit('vote-cast', {
                 votes: room.votes,
-                voter: room.players.get(socket.id).name
+                voter: room.players.get(socket.id).name,
+                votersByOption: votersByOption
             });
         }
     });

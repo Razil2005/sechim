@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Both Fixes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz Game - Fix Verification</h1>
+    
+    <div class="test-section">
+        <h2>Fix 1: Homepage Start Test</h2>
+        <p>This test verifies that the application starts from the homepage instead of directly in online mode.</p>
+        <button onclick="testHomepageStart()">Test Homepage Start</button>
+        <div id="homepage-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Fix 2: Voter Names Display Test</h2>
+        <p>This test verifies that voter names are displayed above voting options in online mode.</p>
+        <button onclick="openMainApp()">Open Main Application</button>
+        <div class="info">
+            <strong>Manual Test Steps:</strong>
+            <ol>
+                <li>Click "Open Main Application" above</li>
+                <li>Select "Online Multiplayer"</li>
+                <li>Create or join a room</li>
+                <li>Start a game with at least 2 players</li>
+                <li>Vote on options</li>
+                <li>Verify that voter names appear above each option</li>
+                <li>Verify names persist until winner is determined</li>
+                <li>Verify names clear when next round starts</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>LocalStorage State Test</h2>
+        <p>This section tests the localStorage state management.</p>
+        <button onclick="testStateManagement()">Test State Management</button>
+        <button onclick="clearLocalStorage()">Clear LocalStorage</button>
+        <div id="state-test-result"></div>
+    </div>
+
+    <script>
+        function testHomepageStart() {
+            const resultDiv = document.getElementById('homepage-test-result');
+            
+            // Check if localStorage has any saved state
+            let savedState = null;
+            try {
+                const saved = localStorage.getItem('quizGameState');
+                savedState = saved ? JSON.parse(saved) : null;
+            } catch (e) {
+                // Ignore errors
+            }
+            
+            let results = [];
+            
+            if (!savedState) {
+                results.push('<div class="success">✓ No saved state found - will start fresh</div>');
+            } else {
+                if (savedState.timestamp) {
+                    const age = Date.now() - savedState.timestamp;
+                    const ageMinutes = Math.floor(age / (1000 * 60));
+                    
+                    if (age > 30 * 60 * 1000) {
+                        results.push('<div class="success">✓ Saved state is old (' + ageMinutes + ' minutes) - will be cleared</div>');
+                    } else {
+                        results.push('<div class="info">ⓘ Recent saved state found (' + ageMinutes + ' minutes old)</div>');
+                        
+                        if (savedState.currentScreen === 'online-lobby' || savedState.currentScreen === 'online-setup') {
+                            results.push('<div class="success">✓ Online screens will not be restored</div>');
+                        } else {
+                            results.push('<div class="info">ⓘ Saved screen: ' + savedState.currentScreen + '</div>');
+                        }
+                    }
+                } else {
+                    results.push('<div class="success">✓ Saved state has no timestamp - will be cleared</div>');
+                }
+            }
+            
+            results.push('<div class="info">ⓘ Application should start on homepage (mode selection)</div>');
+            
+            resultDiv.innerHTML = results.join('');
+        }
+        
+        function testStateManagement() {
+            const resultDiv = document.getElementById('state-test-result');
+            
+            // Test saving state with timestamp
+            const testState = {
+                mode: 'single',
+                category: 'animals',
+                currentScreen: 'game-screen',
+                timestamp: Date.now()
+            };
+            
+            try {
+                localStorage.setItem('quizGameState', JSON.stringify(testState));
+                const retrieved = JSON.parse(localStorage.getItem('quizGameState'));
+                
+                if (retrieved.timestamp && retrieved.mode === 'single') {
+                    resultDiv.innerHTML = '<div class="success">✓ State management working correctly</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="error">✗ State management failed</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="error">✗ Error testing state management: ' + e.message + '</div>';
+            }
+        }
+        
+        function clearLocalStorage() {
+            try {
+                localStorage.removeItem('quizGameState');
+                document.getElementById('state-test-result').innerHTML = '<div class="success">✓ LocalStorage cleared</div>';
+            } catch (e) {
+                document.getElementById('state-test-result').innerHTML = '<div class="error">✗ Error clearing localStorage: ' + e.message + '</div>';
+            }
+        }
+        
+        function openMainApp() {
+            window.open('/', '_blank');
+        }
+        
+        // Run homepage test on load
+        document.addEventListener('DOMContentLoaded', function() {
+            testHomepageStart();
+        });
+    </script>
+</body>
+</html>

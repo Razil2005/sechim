@@ -121,7 +121,7 @@ class OnlineGameManager {    constructor() {
 
         // Vote cast        // Vote cast
         this.socket.on('vote-cast', (data) => {
-            this.updateVoteDisplay(data.votes);
+            this.updateVoteDisplay(data.votes, data.votersByOption);
             // Show notification of who voted
             if (data.voter && data.voter !== this.playerName) {
                 this.showNotification(`${data.voter} voted!`, 'vote');
@@ -329,9 +329,7 @@ class OnlineGameManager {    constructor() {
         
         // Reset vote display
         this.updateVoteDisplay({ option1: 0, option2: 0 });
-    }
-
-    updateVoteDisplay(votes) {
+    }    updateVoteDisplay(votes, votersByOption = null) {
         const totalVotes = votes.option1 + votes.option2;
         const option1Percent = totalVotes > 0 ? (votes.option1 / totalVotes) * 100 : 0;
         const option2Percent = totalVotes > 0 ? (votes.option2 / totalVotes) * 100 : 0;
@@ -341,6 +339,12 @@ class OnlineGameManager {    constructor() {
         
         document.getElementById('online-vote-bar1').style.width = `${option1Percent}%`;
         document.getElementById('online-vote-bar2').style.width = `${option2Percent}%`;
+        
+        // Update voter names display
+        if (votersByOption) {
+            this.updateVoterNames('online-voters1', votersByOption.option1 || []);
+            this.updateVoterNames('online-voters2', votersByOption.option2 || []);
+        }
     }
 
     updateGameInfo() {
@@ -618,3 +622,27 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function    updateVoterNames(containerId, voterNames) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Clear existing voter tags
+        container.innerHTML = '';
+        
+        // Add voter tags for each voter (only if we have voters)
+        if (voterNames && voterNames.length > 0) {
+            voterNames.forEach(voterName => {
+                const voterTag = document.createElement('span');
+                voterTag.className = 'voter-tag';
+                voterTag.textContent = voterName;
+                
+                // Highlight current player's vote
+                if (voterName === this.playerName) {
+                    voterTag.classList.add('current-player');
+                }
+                
+                container.appendChild(voterTag);
+            });
+        }
+    }
