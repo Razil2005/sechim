@@ -15,7 +15,17 @@ const gameData = {    friends: [
         { name: 'Sukufe', image: 'images/friends/sukufe.jpeg' },
         { name: 'Tebriz', image: 'images/friends/tebriz.jpeg' },
         { name: 'Zulfiyye', image: 'images/friends/zulfiye.jpeg' },
-        { name: 'Seyfi', image: 'images/friends/seyfi.jpeg' }
+        { name: 'Seyfi', image: 'images/friends/seyfi.jpeg' },
+        { name: 'Emin', image: 'images/friends/emin.jpeg' },
+        { name: 'Farid', image: 'images/friends/farid.jpeg' },
+        { name: 'Gunel', image: 'images/friends/gunel.jpeg' },
+        { name: 'Huseyn', image: 'images/friends/huseyn.jpeg' },
+        { name: 'Leyla', image: 'images/friends/leyla.jpeg' },
+        { name: 'Murat', image: 'images/friends/murat.jpeg' },
+        { name: 'Narmin', image: 'images/friends/narmin.jpeg' },
+        { name: 'Orhan', image: 'images/friends/orhan.jpeg' },
+        { name: 'Perviz', image: 'images/friends/perviz.jpeg' },
+        { name: 'Zaur', image: 'images/friends/zaur.jpeg' }
     ],    teachers: [
         { name: 'Davud', image: 'images/teachers/davud.jpeg' },
         { name: 'Efsane', image: 'images/teachers/efsane.jpeg' },
