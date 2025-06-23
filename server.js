@@ -100,12 +100,17 @@ class OnlineGameRoom {
         else this.votes.option2++;
         
         return true;
-    }
-
-    startVoting() {
+    }    startVoting() {
         this.votingActive = true;
         this.votes = { option1: 0, option2: 0 };
+        // Don't clear playerVotes here - let it be cleared when starting a new round
+        // this.playerVotes.clear();
+    }
+
+    startNewRound() {
+        // Clear voter data when starting a new round
         this.playerVotes.clear();
+        this.votingActive = false;
     }
 
     getVotersByOption() {
@@ -320,9 +325,9 @@ io.on('connection', (socket) => {
         room.category = data.category;
         room.items = room.shuffleArray([...gameData[data.category]]);
         room.gameState = 'playing';
-        
-        const roundResult = room.startNextRound();
+          const roundResult = room.startNextRound();
         if (!roundResult.isGameFinished) {
+            room.startNewRound(); // Clear any previous voter data
             room.startVoting();
         }
         
@@ -382,8 +387,8 @@ io.on('connection', (socket) => {
                 io.to(data.roomId).emit('game-finished', {
                     winner: nextRound.winner,
                     gameInfo: room.getGameInfo()
-                });
-            } else {
+                });            } else {
+                room.startNewRound(); // Clear previous voter data
                 room.startVoting();
                 io.to(data.roomId).emit('next-round', {
                     gameInfo: room.getGameInfo(),

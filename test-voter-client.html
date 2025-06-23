@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Test Client</title>
+    <script src="http://localhost:3001/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .option {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .voter-names {
+            margin: 10px 0;
+            min-height: 30px;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .voter-names:empty::before {
+            content: "No votes yet";
+            color: #999;
+            font-style: italic;
+            font-size: 0.75rem;
+        }
+        .voter-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(79, 172, 254, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .voter-tag.current-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voter Names Test Client</h1>
+    
+    <div>
+        <input type="text" id="playerName" placeholder="Enter your name" value="Player1">
+        <button onclick="joinTest()">Join Test Room</button>
+        <span id="status">Not connected</span>
+    </div>
+    
+    <div id="voting-area" style="display: none;">
+        <h2>Test Voting</h2>
+        
+        <div class="option">
+            <h3>Option 1</h3>
+            <div class="voter-names" id="voters1"></div>
+            <div id="votes1">0 votes</div>
+            <button onclick="vote(1)">Vote for Option 1</button>
+        </div>
+        
+        <div class="option">
+            <h3>Option 2</h3>
+            <div class="voter-names" id="voters2"></div>
+            <div id="votes2">0 votes</div>
+            <button onclick="vote(2)">Vote for Option 2</button>
+        </div>
+    </div>
+    
+    <div class="log" id="log"></div>
+
+    <script>
+        let socket = null;
+        let playerName = '';
+        let logMessages = [];
+        
+        function log(message) {
+            logMessages.push(new Date().toLocaleTimeString() + ': ' + message);
+            document.getElementById('log').textContent = logMessages.join('\n');
+            console.log(message);
+        }
+        
+        function joinTest() {
+            playerName = document.getElementById('playerName').value || 'Player' + Math.floor(Math.random() * 1000);
+            
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            socket = io('http://localhost:3001');
+            
+            socket.on('connect', () => {
+                log('Connected to test server');
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('status').style.color = 'green';
+                
+                socket.emit('join-test', { playerName: playerName });
+            });
+            
+            socket.on('test-ready', (data) => {
+                log('Ready to test: ' + data.message);
+                document.getElementById('voting-area').style.display = 'block';
+            });
+            
+            socket.on('vote-result', (data) => {
+                log('Vote result received: ' + JSON.stringify(data));
+                updateVoteDisplay(data.votes, data.votersByOption);
+            });
+            
+            socket.on('disconnect', () => {
+                log('Disconnected from test server');
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').style.color = 'red';
+            });
+        }
+        
+        function vote(option) {
+            if (socket) {
+                log(`Voting for option ${option}`);
+                socket.emit('test-vote', { option: option });
+            }
+        }
+        
+        function updateVoteDisplay(votes, votersByOption) {
+            document.getElementById('votes1').textContent = `${votes.option1} votes`;
+            document.getElementById('votes2').textContent = `${votes.option2} votes`;
+            
+            updateVoterNames('voters1', votersByOption.option1 || []);
+            updateVoterNames('voters2', votersByOption.option2 || []);
+        }
+        
+        function updateVoterNames(containerId, voterNames) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (voterNames && voterNames.length > 0) {
+                voterNames.forEach(voterName => {
+                    const voterTag = document.createElement('span');
+                    voterTag.className = 'voter-tag';
+                    voterTag.textContent = voterName;
+                    
+                    if (voterName === playerName) {
+                        voterTag.classList.add('current-player');
+                    }
+                    
+                    container.appendChild(voterTag);
+                });
+                log(`Updated ${containerId} with voters: ${voterNames.join(', ')}`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Names Debug Test</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .voter-names {
+            margin: 10px 0;
+            min-height: 25px;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            border: 2px dashed #ccc;
+            padding: 10px;
+        }
+        .voter-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin: 2px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(79, 172, 254, 0.3);
+        }
+        .voter-tag.current-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voter Names Debug Test</h1>
+    
+    <div class="debug-section">
+        <h2>Voter Names Display Test</h2>
+        <p>This tests the voter names display functionality.</p>
+        
+        <h3>Option 1 Voters:</h3>
+        <div class="voter-names" id="test-voters1">
+            <!-- Voter names for option 1 will appear here -->
+        </div>
+        
+        <h3>Option 2 Voters:</h3>
+        <div class="voter-names" id="test-voters2">
+            <!-- Voter names for option 2 will appear here -->
+        </div>
+        
+        <button onclick="testVoterDisplay()">Test Voter Display</button>
+        <button onclick="clearVoters()">Clear Voters</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Socket Connection Test</h2>
+        <p>Connection Status: <span id="connection-status">Disconnected</span></p>
+        <button onclick="testConnection()">Test Connection</button>
+        <div class="log" id="socket-log"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>HTML Container Test</h2>
+        <p>This tests if the voter name containers exist in the main app.</p>
+        <button onclick="checkMainAppContainers()">Check Main App Containers</button>
+        <div class="log" id="container-log"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let logMessages = [];
+        
+        function log(message) {
+            logMessages.push(new Date().toLocaleTimeString() + ': ' + message);
+            document.getElementById('socket-log').textContent = logMessages.join('\n');
+            console.log(message);
+        }
+        
+        function testVoterDisplay() {
+            // Test the voter display functionality
+            const testData = {
+                option1: ['Alice', 'Bob'],
+                option2: ['Charlie', 'David', 'Eve']
+            };
+            
+            updateVoterNames('test-voters1', testData.option1);
+            updateVoterNames('test-voters2', testData.option2);
+            
+            log('Test voter display updated with sample data');
+        }
+        
+        function clearVoters() {
+            updateVoterNames('test-voters1', []);
+            updateVoterNames('test-voters2', []);
+            log('Voter display cleared');
+        }
+        
+        function updateVoterNames(containerId, voterNames) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                log(`ERROR: Container ${containerId} not found!`);
+                return;
+            }
+            
+            // Clear existing voter tags
+            container.innerHTML = '';
+            
+            // Add voter tags for each voter
+            if (voterNames && voterNames.length > 0) {
+                voterNames.forEach(voterName => {
+                    const voterTag = document.createElement('span');
+                    voterTag.className = 'voter-tag';
+                    voterTag.textContent = voterName;
+                    container.appendChild(voterTag);
+                });
+                log(`Added ${voterNames.length} voters to ${containerId}: ${voterNames.join(', ')}`);
+            } else {
+                container.innerHTML = '<em>No voters</em>';
+                log(`No voters for ${containerId}`);
+            }
+        }
+        
+        function testConnection() {
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            log('Attempting to connect to server...');
+            socket = io();
+            
+            socket.on('connect', () => {
+                log('Connected to server with ID: ' + socket.id);
+                document.getElementById('connection-status').textContent = 'Connected';
+                document.getElementById('connection-status').style.color = 'green';
+            });
+            
+            socket.on('disconnect', () => {
+                log('Disconnected from server');
+                document.getElementById('connection-status').textContent = 'Disconnected';
+                document.getElementById('connection-status').style.color = 'red';
+            });
+            
+            socket.on('vote-cast', (data) => {
+                log('Vote cast event received: ' + JSON.stringify(data));
+            });
+        }
+        
+        function checkMainAppContainers() {
+            const containerLog = document.getElementById('container-log');
+            let logText = '';
+            
+            // Try to open main app in new window and check containers
+            const mainWindow = window.open('/', '_blank');
+            
+            setTimeout(() => {
+                try {
+                    const container1 = mainWindow.document.getElementById('online-voters1');
+                    const container2 = mainWindow.document.getElementById('online-voters2');
+                    
+                    logText += 'Container online-voters1: ' + (container1 ? 'Found' : 'NOT FOUND') + '\n';
+                    logText += 'Container online-voters2: ' + (container2 ? 'Found' : 'NOT FOUND') + '\n';
+                    
+                    if (container1) {
+                        logText += 'Container 1 classes: ' + container1.className + '\n';
+                        logText += 'Container 1 innerHTML: "' + container1.innerHTML + '"\n';
+                    }
+                    
+                    if (container2) {
+                        logText += 'Container 2 classes: ' + container2.className + '\n';
+                        logText += 'Container 2 innerHTML: "' + container2.innerHTML + '"\n';
+                    }
+                    
+                } catch (e) {
+                    logText += 'Error accessing main app: ' + e.message + '\n';
+                }
+                
+                containerLog.textContent = logText;
+            }, 2000);
+        }
+        
+        // Auto-run tests
+        document.addEventListener('DOMContentLoaded', function() {
+            testVoterDisplay();
+        });
+    </script>
+</body>
+</html>

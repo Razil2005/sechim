@@ -344,6 +344,10 @@ class OnlineGameManager {    constructor() {
         if (votersByOption) {
             this.updateVoterNames('online-voters1', votersByOption.option1 || []);
             this.updateVoterNames('online-voters2', votersByOption.option2 || []);
+        } else {
+            // Clear voter names when no voter data provided
+            this.updateVoterNames('online-voters1', []);
+            this.updateVoterNames('online-voters2', []);
         }
     }
 
@@ -625,7 +629,10 @@ document.head.appendChild(style);
 
 function    updateVoterNames(containerId, voterNames) {
         const container = document.getElementById(containerId);
-        if (!container) return;
+        if (!container) {
+            console.error(`Voter container ${containerId} not found!`);
+            return;
+        }
         
         // Clear existing voter tags
         container.innerHTML = '';
@@ -645,4 +652,5 @@ function    updateVoterNames(containerId, voterNames) {
                 container.appendChild(voterTag);
             });
         }
+        // If no voters, container remains empty (CSS will show "No votes yet")
     }
