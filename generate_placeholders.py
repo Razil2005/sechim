@@ -26,10 +26,23 @@ categories = {
     'food': [
         'pizza', 'burger', 'sushi', 'pasta', 'tacos', 'ramen', 'steak', 'icecream',
         'chocolate', 'shawarma', 'kebab', 'biryani', 'fishandchips', 'croissant', 'pancakes', 'donuts'
-    ],
-    'programming-languages': [
+    ],    'programming-languages': [
         'javascript', 'python', 'java', 'cpp', 'csharp', 'typescript', 'go', 'rust',
         'swift', 'kotlin', 'php', 'ruby', 'c', 'html', 'sql', 'dart'
+    ],
+    'beautiful-women': [
+        'emma-watson', 'scarlett-johansson', 'gal-gadot', 'margot-robbie', 
+        'jennifer-lawrence', 'angelina-jolie', 'charlize-theron', 'natalie-portman',
+        'anne-hathaway', 'emma-stone', 'blake-lively', 'mila-kunis',
+        'jessica-alba', 'megan-fox', 'keira-knightley', 'rachel-mcadams',
+        'zendaya', 'taylor-swift', 'ariana-grande', 'selena-gomez',
+        'bella-hadid', 'gigi-hadid', 'kendall-jenner', 'hailey-bieber',
+        'emily-ratajkowski', 'adriana-lima', 'candice-swanepoel', 'miranda-kerr',
+        'karlie-kloss', 'rosie-huntington', 'irina-shayk', 'dua-lipa',
+        'rihanna', 'beyonce', 'jennifer-lopez', 'priyanka-chopra',
+        'deepika-padukone', 'aishwarya-rai', 'freida-pinto', 'lupita-nyongo',
+        'zoe-saldana', 'thandie-newton', 'halle-berry', 'monica-bellucci',
+        'penelope-cruz', 'salma-hayek', 'fan-bingbing', 'liu-yifei'
     ]
 }
 
@@ -40,8 +53,8 @@ color_schemes = {
     'animals': [(34, 139, 34), (255, 255, 255)],     # Forest green and white
     'cars': [(220, 20, 60), (255, 255, 255)],        # Crimson and white
     'games': [(138, 43, 226), (255, 255, 255)],      # Blue violet and white
-    'food': [(255, 140, 0), (255, 255, 255)],        # Dark orange and white
-    'programming-languages': [(72, 61, 139), (255, 255, 255)]  # Dark slate blue and white
+    'food': [(255, 140, 0), (255, 255, 255)],        # Dark orange and white    'programming-languages': [(72, 61, 139), (255, 255, 255)],  # Dark slate blue and white
+    'beautiful-women': [(255, 20, 147), (255, 255, 255)]  # Deep pink and white
 }
 
 def create_placeholder_image(category, filename, text):
@@ -75,9 +88,9 @@ def create_placeholder_image(category, filename, text):
     cat_width = bbox_cat[2] - bbox_cat[0]
     cat_x = (400 - cat_width) // 2
     draw.text((cat_x, 260), category_label, fill=color_schemes[category][1], font=small_font)
-    
-    # Save image
-    directory = f"c:\\Users\\Razil\\Desktop\\secim\\images\\{category}"
+      # Save image
+    directory = f"c:\\Users\\Razil\\Desktop\\second-commit\\images\\{category}"
+    os.makedirs(directory, exist_ok=True)  # Create directory if it doesn't exist
     filepath = f"{directory}\\{filename}.jpg"
     img.save(filepath, "JPEG", quality=85)
     print(f"Created: {filepath}")
@@ -118,13 +131,15 @@ for category, filenames in categories.items():
         elif filename == 'rdr2':
             text = 'RDR 2'
         elif filename == 'godofwar':
-            text = 'God of War'
-        elif filename == 'lastofus':
+            text = 'God of War'        elif filename == 'lastofus':
             text = 'The Last of Us'
         elif filename == 'amongus':
             text = 'Among Us'
         elif filename == 'eldenring':
             text = 'Elden Ring'
+        # Beautiful women name formatting
+        elif category == 'beautiful-women':
+            text = filename.replace('-', ' ').title()
         
         create_placeholder_image(category, filename, text)
 
