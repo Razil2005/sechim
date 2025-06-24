@@ -94,7 +94,7 @@ class OnlineGameManager {    constructor() {
                 
                 // Show notification if this player became the new host
                 if (!wasHost && this.isHost) {
-                    //this.showNotification('You are now the host!', 'info');                }
+                    this.showNotification('You are now the host!', 'info');                }
             }
             
             // Show notification when player leaves
