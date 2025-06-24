@@ -171,7 +171,7 @@ header p {
 .option-image {
     width: 320px;
     height: 320px;
-    object-fit: cover; /* Use 'contain' to see full image, 'cover' to fill frame */
+    object-fit: contain; /* Show full image without cropping */
     object-position: center;
     border-radius: 15px;
     margin-bottom: 15px;
@@ -332,7 +332,7 @@ header p {
 .winner-image {
     width: 350px;
     height: 350px;
-    object-fit: cover;
+    object-fit: contain; /* Show full image without cropping */
     object-position: center;
     border-radius: 20px;
     margin-bottom: 20px;
