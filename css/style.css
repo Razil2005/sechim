@@ -154,13 +154,13 @@ header p {
 .option-card {
     background: white;
     border-radius: 15px;
-    padding: 20px;
+    padding: 25px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    min-width: 250px;
-    max-width: 300px;
+    min-width: 350px;
+    max-width: 380px;
 }
 
 .option-card:hover {
@@ -169,13 +169,14 @@ header p {
 }
 
 .option-image {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
+    width: 320px;
+    height: 320px;
+    object-fit: cover; /* Use 'contain' to see full image, 'cover' to fill frame */
     object-position: center;
-    border-radius: 10px;
+    border-radius: 15px;
     margin-bottom: 15px;
     background-color: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .option-name {
@@ -329,14 +330,15 @@ header p {
 }
 
 .winner-image {
-    width: 250px;
-    height: 250px;
-    object-fit: contain;
+    width: 350px;
+    height: 350px;
+    object-fit: cover;
     object-position: center;
-    border-radius: 15px;
+    border-radius: 20px;
     margin-bottom: 20px;
     border: 5px solid white;
     background-color: #f8f9fa;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .winner-name {
@@ -825,17 +827,15 @@ header p {
         flex-direction: column;
         gap: 20px;
     }
-    
-    .option-card {
+      .option-card {
         min-width: unset;
         max-width: unset;
         width: 100%;
-        padding: 15px;
+        padding: 20px;
     }
-    
-    .option-image {
-        width: 150px;
-        height: 150px;
+      .option-image {
+        width: 260px;
+        height: 260px;
         margin: 0 auto 15px;
     }
     
@@ -895,10 +895,9 @@ header p {
         padding: 25px 20px;
         margin: 20px 0;
     }
-    
-    .winner-image {
-        width: 180px;
-        height: 180px;
+      .winner-image {
+        width: 280px;
+        height: 280px;
     }
     
     .winner-name {
@@ -979,15 +978,13 @@ header p {
     .category-card {
         padding: 15px 10px;
     }
-    
-    .option-image {
-        width: 120px;
-        height: 120px;
+      .option-image {
+        width: 200px;
+        height: 200px;
     }
-    
-    .winner-image {
-        width: 150px;
-        height: 150px;
+      .winner-image {
+        width: 220px;
+        height: 220px;
     }
     
     .room-info {

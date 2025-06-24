@@ -293,7 +293,7 @@ const gameData = {    friends: [
         { name: 'Ebrar Karabakan', image: 'images/beautiful-women/ebrar.jpeg' },
         { name: 'Gozde Demiral', image: 'images/beautiful-women/gozde.jpeg' },
         { name: 'Maral Sinem Özdoğan', image: 'images/beautiful-women/maral.jpeg' },
-        { name: 'Angelina Jolie', image: 'images/beautiful-women/jolie.jpg' },
+        { name: 'Angelina Jolie', image: 'images/beautiful-women/angelina.jpg' },
         { name: 'Madelyn Cline', image: 'images/beautiful-women/cline.jpg' },
         { name: 'Madison Beer', image: 'images/beautiful-women/beer.jpg' },
         { name: 'Sydney Sweeney', image: 'images/beautiful-women/sydney.jpg' },
