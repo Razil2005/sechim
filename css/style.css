@@ -308,6 +308,10 @@ header p {
     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
+.host-indicator.hidden {
+    display: none !important;
+}
+
 /* Winner Screen */
 .winner-container {
     text-align: center;
