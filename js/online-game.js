@@ -1,9 +1,5 @@
 // Online Game Logic
 class OnlineGameManager {    constructor() {
-        console.log('OnlineGameManager constructor called');
-        console.log('  - Socket.IO available:', typeof io !== 'undefined');
-        console.log('  - Current timestamp:', new Date().toISOString());
-        
         this.socket = null;
         this.roomId = null;
         this.playerName = null;
@@ -15,7 +11,7 @@ class OnlineGameManager {    constructor() {
         window.onlineGame = this;
         
         this.initializeSocket();
-    }    initializeSocket() {
+    }initializeSocket() {
         console.log('Initializing socket connection...');
         
         // Check if we're running via file:// protocol
@@ -55,9 +51,7 @@ class OnlineGameManager {    constructor() {
             console.log('Disconnected from server');
             this.connected = false;
             this.updateConnectionStatus();
-        });
-
-        // Room creation response
+        });        // Room creation response
         this.socket.on('room-created', (data) => {
             if (data.success) {
                 this.roomId = data.roomId;
@@ -67,21 +61,24 @@ class OnlineGameManager {    constructor() {
             }
         });        // Join room response
         this.socket.on('join-room-response', (data) => {
-            console.log('Join room response received:', data);
             if (data.success) {
                 this.gameInfo = data.gameInfo;
                 this.isHost = false;
                 this.roomId = data.gameInfo.roomId;
                 this.showLobby();
-                console.log('Successfully joined room:', this.roomId);
             } else {
-                console.error('Failed to join room:', data.message);
-                alert(`Failed to join room: ${data.message}`);            }
-        });
-
-        // Player joined
+                alert(`Failed to join room: ${data.message}`);
+            }
+        });// Player joined
         this.socket.on('player-joined', (data) => {
             this.gameInfo = data.gameInfo;
+            
+            // Update host status based on server data
+            const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
+            if (currentPlayer) {
+                this.isHost = currentPlayer.isHost;
+            }
+            
             this.updateLobby();
             this.updateHostControls(); // Ensure host controls are updated
             this.showNotification(`${data.player.name} joined the game!`, 'join');
@@ -104,24 +101,33 @@ class OnlineGameManager {    constructor() {
             if (data.playerName) {
                 this.showNotification(`${data.playerName} left the game`, 'leave');
             }
-        });
-
-        // Game started
+        });        // Game started
         this.socket.on('game-started', (data) => {
             this.gameInfo = data.gameInfo;
+            
+            // Update host status based on server data
+            const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
+            if (currentPlayer) {
+                this.isHost = currentPlayer.isHost;
+            }
+            
             this.showOnlineCategorySelection();
-        });
-
-        // Category selected
+        });        // Category selected
         this.socket.on('category-selected', (data) => {
             this.gameInfo = data.gameInfo;
+            
+            // Update host status based on server data
+            const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
+            if (currentPlayer) {
+                this.isHost = currentPlayer.isHost;
+            }
+            
             this.startOnlineGameplay(data.currentPair);
             this.showNotification('Game started! Time to vote!', 'success');
         });
 
         // Vote cast        // Vote cast
         this.socket.on('vote-cast', (data) => {
-            console.log('Vote received from:', data.voter);
             this.updateVoteDisplay(data.votes, data.votersByOption);
             
             // Show notification of who voted
@@ -136,16 +142,28 @@ class OnlineGameManager {    constructor() {
         });        // Next round
         this.socket.on('next-round', (data) => {
             this.gameInfo = data.gameInfo;
+            
+            // Update host status based on server data
+            const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
+            if (currentPlayer) {
+                this.isHost = currentPlayer.isHost;
+            }
+            
             this.startNextOnlineRound(data.currentPair);
             this.showNotification('Next round started!', 'info');
         });// Game finished
         this.socket.on('game-finished', (data) => {
             this.showOnlineWinner(data.winner);
-        });
-
-        // Game restarted
+        });        // Game restarted
         this.socket.on('game-restarted', (data) => {
             this.gameInfo = data.gameInfo;
+            
+            // Update host status based on server data
+            const currentPlayer = this.gameInfo.players.find(p => p.id === this.socket.id);
+            if (currentPlayer) {
+                this.isHost = currentPlayer.isHost;
+            }
+            
             this.showLobby();
             this.showNotification('Game restarted! Ready for another round!', 'success');
         });
@@ -156,21 +174,15 @@ class OnlineGameManager {    constructor() {
         });
     }    // Create new room
     createRoom(playerName) {
-        console.log('createRoom called with playerName:', playerName);
-        console.log('Socket connected:', this.connected, 'Socket object:', this.socket);
         this.playerName = playerName;
         this.socket.emit('create-room', { playerName });
-        console.log('create-room event emitted');
     }    // Join existing room
     joinRoom(playerName, roomCode) {
-        console.log('joinRoom called with playerName:', playerName, 'roomCode:', roomCode);
-        console.log('Socket connected:', this.connected, 'Socket object:', this.socket);
         this.playerName = playerName;
         this.socket.emit('join-room', { 
             playerName, 
             roomId: roomCode.toUpperCase() 
         });
-        console.log('join-room event emitted');
     }
 
     // Start game (host only)
@@ -302,18 +314,11 @@ class OnlineGameManager {    constructor() {
             });
             
             document.getElementById('online-multiplayer-game').setAttribute('data-listeners-added', 'true');
-        }
-        
-        this.displayOnlineOptions(currentPair);
+        }        this.displayOnlineOptions(currentPair);
         this.updateGameInfo();
-          // Show end voting button only for host
-        if (this.isHost) {
-            document.getElementById('end-online-voting').classList.remove('hidden');
-            document.getElementById('host-indicator').classList.remove('hidden');
-        } else {
-            document.getElementById('end-online-voting').classList.add('hidden');
-            document.getElementById('host-indicator').classList.add('hidden');
-        }
+        
+        // Update host indicator and controls
+        this.updateHostIndicator();
     }
 
     displayOnlineOptions(currentPair) {
@@ -341,10 +346,8 @@ class OnlineGameManager {    constructor() {
         document.getElementById('online-option2-votes').textContent = `${votes.option2} votes`;
         
         document.getElementById('online-vote-bar1').style.width = `${option1Percent}%`;
-        document.getElementById('online-vote-bar2').style.width = `${option2Percent}%`;
-          // Update voter names display
+        document.getElementById('online-vote-bar2').style.width = `${option2Percent}%`;        // Update voter names display
         if (votersByOption) {
-            console.log('Updating voter names:', votersByOption);
             this.updateVoterNames('online-voters1', votersByOption.option1 || []);
             this.updateVoterNames('online-voters2', votersByOption.option2 || []);
         } else {
@@ -363,10 +366,8 @@ class OnlineGameManager {    constructor() {
         
         // Clear existing voter tags
         container.innerHTML = '';
-        
-        // Add voter tags for each voter (only if we have voters)
+          // Add voter tags for each voter (only if we have voters)
         if (voterNames && voterNames.length > 0) {
-            console.log(`Adding ${voterNames.length} voters to ${containerId}: ${voterNames.join(', ')}`);
             voterNames.forEach(voterName => {
                 const voterTag = document.createElement('span');
                 voterTag.className = 'voter-tag';
@@ -379,8 +380,6 @@ class OnlineGameManager {    constructor() {
                 
                 container.appendChild(voterTag);
             });
-        } else {
-            console.log(`No voters to display for ${containerId}`);
         }
         // If no voters, container remains empty (CSS will show "No votes yet")
     }
@@ -412,12 +411,13 @@ class OnlineGameManager {    constructor() {
         }
         
         this.showNotification(message);
-    }
-
-    startNextOnlineRound(currentPair) {
+    }    startNextOnlineRound(currentPair) {
         this.displayOnlineOptions(currentPair);
         this.updateGameInfo();
-    }    showOnlineWinner(winner) {
+        
+        // Update host indicator for next round
+        this.updateHostIndicator();
+    }showOnlineWinner(winner) {
         document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('winner-screen').classList.remove('hidden');
         
@@ -555,6 +555,20 @@ class OnlineGameManager {    constructor() {
         
         if (this.socket) {
             this.socket.disconnect();
+        }
+    }    // Helper function to update host indicator in game screen
+    updateHostIndicator() {
+        const hostIndicator = document.getElementById('host-indicator');
+        const endVotingButton = document.getElementById('end-online-voting');
+        
+        if (hostIndicator && endVotingButton) {
+            if (this.isHost) {
+                hostIndicator.classList.remove('hidden');
+                endVotingButton.classList.remove('hidden');
+            } else {
+                hostIndicator.classList.add('hidden');
+                endVotingButton.classList.add('hidden');
+            }
         }
     }
 }
