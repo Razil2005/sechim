@@ -556,17 +556,21 @@ class OnlineGameManager {    constructor() {
         if (this.socket) {
             this.socket.disconnect();
         }
-    }    // Helper function to update host indicator in game screen
+    }    // Helper function to update host controls in game screen
     updateHostIndicator() {
         const hostIndicator = document.getElementById('host-indicator');
         const endVotingButton = document.getElementById('end-online-voting');
         
-        if (hostIndicator && endVotingButton) {
+        // Always hide the host indicator - remove this UI element completely
+        if (hostIndicator) {
+            hostIndicator.classList.add('hidden');
+        }
+        
+        // Only show/hide the end voting button based on host status
+        if (endVotingButton) {
             if (this.isHost) {
-                hostIndicator.classList.remove('hidden');
                 endVotingButton.classList.remove('hidden');
             } else {
-                hostIndicator.classList.add('hidden');
                 endVotingButton.classList.add('hidden');
             }
         }
