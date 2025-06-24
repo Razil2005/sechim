@@ -288,7 +288,7 @@ const gameData = {    friends: [
         { name: 'Flutter', image: 'images/programming-languages/flutter.jpg' },        { name: 'SQL', image: 'images/programming-languages/sql.jpg' },
         { name: 'Dart', image: 'images/programming-languages/dart.jpg' }
     ],    'beautiful-women': [
-        { name: 'Ester Exposito', image: 'images/beautiful-women/ester.jpeg' },
+        { name: 'Ester Exposito', image: 'images/beautiful-women/ester2.jpeg' },
         { name: 'Scarlett Johansson', image: 'images/beautiful-women/scarlett.jpg' },
         { name: 'Ebrar Karabakan', image: 'images/beautiful-women/ebrar.jpeg' },
         { name: 'Gozde Demiral', image: 'images/beautiful-women/gozde.jpeg' },
@@ -297,7 +297,7 @@ const gameData = {    friends: [
         { name: 'Madelyn Cline', image: 'images/beautiful-women/cline.jpg' },
         { name: 'Madison Beer', image: 'images/beautiful-women/beer.jpg' },
         { name: 'Sydney Sweeney', image: 'images/beautiful-women/sydney.jpg' },
-        { name: 'Petek Alemdar', image: 'images/beautiful-women/petek.jpeg' },
+        { name: 'Petek Alemdar', image: 'images/beautiful-women/petek2.jpg' },
         { name: 'Gigi Hadid', image: 'images/beautiful-women/gigi.png' },
         { name: 'Jodie Comer', image: 'images/beautiful-women/jodie.jpg' },
         { name: 'Zendaya', image: 'images/beautiful-women/jendaya.jpeg' },
@@ -307,8 +307,8 @@ const gameData = {    friends: [
         { name: 'Jessica Alba', image: 'images/beautiful-women/jessica.webp' },
         { name: 'Margot Robbie', image: 'images/beautiful-women/margot.jpeg' },
         { name: 'Ariana Grande', image: 'images/beautiful-women/ariana.webp' },
-        { name: 'Ana De Armas', image: 'images/beautiful-women/anade.jpg' },
-        { name: 'Hadise', image: 'images/beautiful-women/hadise.webp' },
+        { name: 'Ana De Armas', image: 'images/beautiful-women/ana2.webp' },
+        { name: 'Hadise', image: 'images/beautiful-women/hadise.webp' }, 
         { name: 'Afra Saraçoğlu', image: 'images/beautiful-women/afra.jpg' },
         { name: 'Devrim Özkan', image: 'images/beautiful-women/devrim.jpg' },
         { name: 'Mine Tugay', image: 'images/beautiful-women/mine.webp' },
@@ -318,8 +318,8 @@ const gameData = {    friends: [
         { name: 'Ayça Ayşin Turan', image: 'images/beautiful-women/ayca.jpg' },
         { name: 'Elanur', image: 'images/beautiful-women/elanur.jpeg' },
         { name: 'Türkü Su Demirel', image: 'images/beautiful-women/turku2.jpeg' },
-        { name: 'Elif Nur Yel', image: 'images/beautiful-women/elif.jpg' },
-        { name: 'Zeynep Bastık', image: 'images/beautiful-women/zeynep.jpeg' },
+        { name: 'Elif Nur Yel', image: 'images/beautiful-women/elif3.jpg' },
+        { name: 'Zeynep Bastık', image: 'images/beautiful-women/zeynep2.webp' },
         { name: 'Sevda Erginci', image: 'images/beautiful-women/sevda.png' },
         { name: 'Irina Sharipova', image: 'images/beautiful-women/irina.jpg' },
         { name: 'Jennifer Lawrence', image: 'images/beautiful-women/jennifer.jpeg' },
@@ -332,10 +332,17 @@ const gameData = {    friends: [
         { name: 'Selena Gomez', image: 'images/beautiful-women/selena.jpg' },
         { name: 'Serenay Sarikaya', image: 'images/beautiful-women/serenay.webp' },
         { name: 'Monica Bellucci', image: 'images/beautiful-women/monica.webp' },
-        { name: 'Miranda Kerr', image: 'images/beautiful-women/miranda.jpg' },
-        { name: 'Lana Del Rey', image: 'images/beautiful-women/lana.jpg' },
+        { name: 'Miranda Kerr', image: 'images/beautiful-women/miranda.jpg' },        { name: 'Lana Del Rey', image: 'images/beautiful-women/lana.jpg' },
         { name: 'Alica Schmidt', image: 'images/beautiful-women/alica.jpg' },
-        { name: 'Esra Bilgiç', image: 'images/beautiful-women/esra.jpg' }
+        { name: 'Esra Bilgiç', image: 'images/beautiful-women/esra.jpg' },
+        { name: 'Aleyna Tilki', image: 'images/beautiful-women/aleyna.jpg' },
+        { name: 'Elizabeth Olsen', image: 'images/beautiful-women/olsen.webp' },
+        { name: 'Natalie Portman', image: 'images/beautiful-women/natalia.webp' },
+        { name: 'Hazal Subaşı', image: 'images/beautiful-women/hazal.jpg' },
+        { name: 'Nilsu Berfin Aktaş', image: 'images/beautiful-women/nilsu.webp' },
+        { name: 'Nigar Camal', image: 'images/beautiful-women/nigar.webp' },
+        { name: 'Yasemin Kay Allen', image: 'images/beautiful-women/yasemin.jpg' },
+        { name: 'Simge Sağın', image: 'images/beautiful-women/simge.jpg' }
     ]
 };
 
